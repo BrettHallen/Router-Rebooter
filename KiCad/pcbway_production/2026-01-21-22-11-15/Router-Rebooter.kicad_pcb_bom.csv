@@ -1,0 +1,10 @@
+﻿Designator,Quantity,Value,Footprint,Package,MPN,DNP,Mount_Type,Description,Sim.Device,Sim.Pins,Sim.Type
+C1,1,10µF,CP_Radial_D5.0mm_P2.50mm,,,,tht,Polarized capacitor,,,
+D1,1,1N4148,D_DO-35_SOD27_P7.62mm_Horizontal,,,,tht,Diode,D,1=K 2=A,
+J1,1,12V Power In,BarrelJack_CUI_PJ-063AH_Horizontal,,,,tht,DC Barrel Jack,,,
+J2,1,12V Power Out,BarrelJack_CUI_PJ-063AH_Horizontal,,,,tht,DC Barrel Jack,,,
+K1,1,SRD-05VDC-SL-C,Relay_SPDT_SANYOU_SRD_Series_Form_C,,,,tht,"Sanyo SRD relay, Single Pole Miniature Power Relay,",,,
+Q1,1,2N2222,TO-92L_Inline,,,,tht,"Bipolar transistor symbol for simulation only, substrate tied to the emitter",NPN,1=C 2=B 3=E,GUMMELPOON
+R1,1,1KΩ,R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal,,,,tht,Resistor,,,
+U1,1,ESP32-C3-Zero,Waveshare-ESP32-C3-Zero,,,,smt,,,,
+"U2, U3",2,PSU2-5,TO-220-3_Vertical,,,,tht,"Positive 1A 35V Linear Regulator, Fixed Output 5V, TO-220",,,

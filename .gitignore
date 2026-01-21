@@ -1,0 +1,7 @@
+.DS_Store
+Datasheets/.DS_Store
+KiCad/.DS_Store
+KiCad/fp-info-cache
+KiCad/pcbway_production/.DS_Store
+*.kicad_prl
+/KiCad/Router-Rebooter-backups
