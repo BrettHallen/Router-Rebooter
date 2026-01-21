@@ -18,6 +18,9 @@ After one minute I'll de-energise the relay and power the router back on.<br>
 
 I'll wait five minutes before resuming pinging.  If pinging remains unsuccessful 10min after powering back on then I'll repeat the process.<br>
 
+## Firmware
+\>\>\> WORK IN PROGRESS <<<
+
 ## Parts
 - Songle SRD-05VDC-SL-C relay (or similar)
 - ESP32-C3-Zero (Waveshare)
@@ -30,3 +33,5 @@ I've sized the PCB (62x49mm) to fit an 83x54x31mm Jiffy Box [(Jaycar HB6015)](ht
 
 Waveshare ESP32-C3-Zero symbol/footprint/3D model from:
 https://github.com/jonathanadams/KiCad-Waveshare-ESP32
+
+![Router Rebooter 3D](/Images/Broadband_Router_Rebooter_3D.png)
