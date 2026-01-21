@@ -24,7 +24,7 @@ I'll wait five minutes before resuming pinging.  If pinging remains unsuccessful
 ## Parts
 - Songle SRD-05VDC-SL-C relay (or similar)
 - ESP32-C3-Zero (Waveshare)
-- Two 7805-type 5V regulators (i.e. [PSU2-5](https://ezsbc.shop/products/psu2-5-5v-1amp-three-pin-regulator)) to power the ESP and the relay coil separately
+- Two 7805-type 5V regulators (i.e. [EzSBC's PSU2-5](https://ezsbc.shop/products/psu2-5-5v-1amp-three-pin-regulator)) to power the ESP and the relay coil separately
 - Two 2.1mm DC power sockets to pass through the 12VDC
 - Some other bits (2N2222 transistor, 1K resistor, 1N4148 diode) to connect the relay coil to the ESP32
 - Four M3 screws
