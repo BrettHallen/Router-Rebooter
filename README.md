@@ -31,7 +31,7 @@ I'll wait five minutes before resuming pinging.  If pinging remains unsuccessful
 
 I've sized the PCB (62x49mm) to fit an 83x54x31mm Jiffy Box [(Jaycar HB6015)](https://www.jaycar.com.au/jiffy-box-black-83-x-54-x-31mm/p/HB6015).<br>
 
-Waveshare ESP32-C3-Zero symbol/footprint/3D model from:
+Waveshare ESP32-C3-Zero symbol/footprint/3D model from:<br>
 https://github.com/jonathanadams/KiCad-Waveshare-ESP32
 
 ![Router Rebooter 3D](/Images/Broadband_Router_Rebooter_3D.png)
