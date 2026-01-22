@@ -1,11 +1,15 @@
 ﻿pos_x,pos_y,rotation,side,designator,mpn,pack,footprint,value,mount_type
 67.6464,-70.6474,0.0,top,C1,,,CP_Radial_D5.0mm_P2.50mm,10µF,tht
 82.8864,-51.5974,0.0,top,D1,,,D_DO-35_SOD27_P7.62mm_Horizontal,1N4148,tht
+108.2164,-37.0474,0.0,top,D2,,,LED_D3.0mm,OK,tht
+105.2164,-37.0474,180.0,top,D3,,,LED_D3.0mm,FAILURE,tht
 70.2164,-47.5474,-90.0,top,J1,,,BarrelJack_CUI_PJ-063AH_Horizontal,12V Power In,tht
 107.2164,-47.5474,90.0,top,J2,,,BarrelJack_CUI_PJ-063AH_Horizontal,12V Power Out,tht
 80.3464,-41.4374,0.0,top,K1,,,Relay_SPDT_SANYOU_SRD_Series_Form_C,SRD-05VDC-SL-C,tht
 98.1264,-52.8674,-90.0,top,Q1,,,TO-92L_Inline,2N2222,tht
 82.8864,-55.4074,0.0,top,R1,,,R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal,1KΩ,tht
+113.2164,-64.8574,90.0,top,R2,,,R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal,R,tht
+109.2164,-64.8574,90.0,top,R3,,,R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal,R,tht
 91.2664,-70.0474,-90.0,top,U1,,,Waveshare-ESP32-C3-Zero,ESP32-C3-Zero,smt
 72.7264,-59.5374,180.0,top,U2,,,TO-220-3_Vertical,PSU2-5,tht
 68.9164,-37.6274,0.0,top,U3,,,TO-220-3_Vertical,PSU2-5,tht
