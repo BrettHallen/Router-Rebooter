@@ -2244,7 +2244,7 @@
 	)
 	(text_box "Using two 5V regulators to try to provide some sort of isolation between the power supply for the ESP32 and the relay coil.\n\nMaybe simpler than using an optoisolator  ... ?\n\nYes, it's not truly isolated - same +12V input and same ground, but ... it should be pretty good ... good enough for me."
 		(exclude_from_sim no)
-		(at 119.38 140.97 0)
+		(at 153.67 82.55 0)
 		(size 125.73 12.7)
 		(margins 0.9525 0.9525 0.9525 0.9525)
 		(stroke
@@ -2284,7 +2284,7 @@
 	)
 	(text_box "Trying to save power by using NC contact so relay coil is de-energised most of the time.\n\nWhen the router needs to be reset then we energise the coil to NO, cutting the through power.\n\nIn case of power loss, well the router will lose power too.  We want to reboot so router power can flow when relay coil is de-energised."
 		(exclude_from_sim no)
-		(at 173.99 49.53 0)
+		(at 53.34 116.84 0)
 		(size 54.61 21.59)
 		(margins 0.9525 0.9525 0.9525 0.9525)
 		(stroke
@@ -2309,7 +2309,7 @@
 		(uuid "3bf1e13f-e6f0-411a-95b8-2df95bc84ac6")
 	)
 	(junction
-		(at 144.78 107.95)
+		(at 194.31 58.42)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "79739b99-b6b2-48fb-bb0a-278c1e920251")
@@ -2321,7 +2321,7 @@
 		(uuid "7ac45a3e-3e57-43a4-a7b4-9fa8c1b37a97")
 	)
 	(junction
-		(at 161.29 116.84)
+		(at 210.82 67.31)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "7fc110ac-21da-448d-a5ef-d186bdd7d110")
@@ -2343,6 +2343,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "d9e085b6-4ca2-4d4f-9fce-ea3707e8cf2f")
+	)
+	(junction
+		(at 194.31 45.72)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "e855585f-2bad-43ab-922a-87a3d09e351d")
 	)
 	(junction
 		(at 125.73 62.23)
@@ -2428,7 +2434,7 @@
 	)
 	(wire
 		(pts
-			(xy 161.29 115.57) (xy 161.29 116.84)
+			(xy 210.82 66.04) (xy 210.82 67.31)
 		)
 		(stroke
 			(width 0)
@@ -2448,7 +2454,7 @@
 	)
 	(wire
 		(pts
-			(xy 196.85 116.84) (xy 161.29 116.84)
+			(xy 246.38 67.31) (xy 210.82 67.31)
 		)
 		(stroke
 			(width 0)
@@ -2468,7 +2474,7 @@
 	)
 	(wire
 		(pts
-			(xy 144.78 95.25) (xy 144.78 107.95)
+			(xy 194.31 45.72) (xy 194.31 58.42)
 		)
 		(stroke
 			(width 0)
@@ -2488,7 +2494,7 @@
 	)
 	(wire
 		(pts
-			(xy 196.85 102.87) (xy 196.85 116.84)
+			(xy 246.38 53.34) (xy 246.38 67.31)
 		)
 		(stroke
 			(width 0)
@@ -2518,7 +2524,7 @@
 	)
 	(wire
 		(pts
-			(xy 144.78 107.95) (xy 153.67 107.95)
+			(xy 194.31 58.42) (xy 203.2 58.42)
 		)
 		(stroke
 			(width 0)
@@ -2558,7 +2564,7 @@
 	)
 	(wire
 		(pts
-			(xy 161.29 116.84) (xy 161.29 123.19)
+			(xy 210.82 67.31) (xy 210.82 73.66)
 		)
 		(stroke
 			(width 0)
@@ -2568,7 +2574,7 @@
 	)
 	(wire
 		(pts
-			(xy 204.47 95.25) (xy 215.9 95.25)
+			(xy 254 45.72) (xy 265.43 45.72)
 		)
 		(stroke
 			(width 0)
@@ -2598,7 +2604,7 @@
 	)
 	(wire
 		(pts
-			(xy 157.48 36.83) (xy 167.64 36.83)
+			(xy 157.48 36.83) (xy 194.31 36.83)
 		)
 		(stroke
 			(width 0)
@@ -2618,7 +2624,7 @@
 	)
 	(wire
 		(pts
-			(xy 144.78 113.03) (xy 144.78 116.84)
+			(xy 194.31 63.5) (xy 194.31 67.31)
 		)
 		(stroke
 			(width 0)
@@ -2668,13 +2674,23 @@
 	)
 	(wire
 		(pts
-			(xy 189.23 95.25) (xy 144.78 95.25)
+			(xy 238.76 45.72) (xy 194.31 45.72)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "8d5f6f8c-2ab4-454c-96c9-db57faf38b2d")
+	)
+	(wire
+		(pts
+			(xy 194.31 36.83) (xy 194.31 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "93de3590-cee5-4e1c-b2f3-83a2f25b9357")
 	)
 	(wire
 		(pts
@@ -2758,7 +2774,7 @@
 	)
 	(wire
 		(pts
-			(xy 142.24 113.03) (xy 144.78 113.03)
+			(xy 191.77 63.5) (xy 194.31 63.5)
 		)
 		(stroke
 			(width 0)
@@ -2788,7 +2804,7 @@
 	)
 	(wire
 		(pts
-			(xy 142.24 107.95) (xy 144.78 107.95)
+			(xy 191.77 58.42) (xy 194.31 58.42)
 		)
 		(stroke
 			(width 0)
@@ -2798,7 +2814,7 @@
 	)
 	(wire
 		(pts
-			(xy 179.07 107.95) (xy 168.91 107.95)
+			(xy 228.6 58.42) (xy 218.44 58.42)
 		)
 		(stroke
 			(width 0)
@@ -2848,7 +2864,7 @@
 	)
 	(wire
 		(pts
-			(xy 144.78 116.84) (xy 161.29 116.84)
+			(xy 194.31 67.31) (xy 210.82 67.31)
 		)
 		(stroke
 			(width 0)
@@ -2858,7 +2874,7 @@
 	)
 	(wire
 		(pts
-			(xy 179.07 105.41) (xy 179.07 107.95)
+			(xy 228.6 55.88) (xy 228.6 58.42)
 		)
 		(stroke
 			(width 0)
@@ -2937,7 +2953,7 @@
 		(uuid "2ae4da7e-f7e0-4307-81a5-3805663b1446")
 	)
 	(label "+12V_{IN}"
-		(at 146.05 107.95 0)
+		(at 195.58 58.42 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2987,7 +3003,7 @@
 		(uuid "abed4712-e6a3-4425-b3e4-f21ee15bd240")
 	)
 	(label "+5V_{RELAY}"
-		(at 205.74 95.25 0)
+		(at 255.27 45.72 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3007,7 +3023,7 @@
 		(uuid "c726c944-9a1c-4fef-9768-39e6d5d3f67b")
 	)
 	(label "+5V_{ESP32}"
-		(at 170.18 107.95 0)
+		(at 219.71 58.42 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3017,7 +3033,7 @@
 		(uuid "cd9f6882-66ba-43e0-ac0a-123014cf0142")
 	)
 	(label "GND"
-		(at 161.29 120.65 0)
+		(at 210.82 71.12 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3529,7 +3545,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole")
-		(at 236.22 31.75 0)
+		(at 146.05 173.99 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -3538,7 +3554,7 @@
 		(fields_autoplaced yes)
 		(uuid "5a43b667-cdf2-4dfd-a232-6d84706e0791")
 		(property "Reference" "H2"
-			(at 238.76 30.4799 0)
+			(at 148.59 172.7199 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3547,7 +3563,7 @@
 			)
 		)
 		(property "Value" "MountingHole"
-			(at 238.76 33.0199 0)
+			(at 148.59 175.2599 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3556,7 +3572,7 @@
 			)
 		)
 		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_DIN965"
-			(at 236.22 31.75 0)
+			(at 146.05 173.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3565,7 +3581,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 236.22 31.75 0)
+			(at 146.05 173.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3574,7 +3590,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole without connection"
-			(at 236.22 31.75 0)
+			(at 146.05 173.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3593,7 +3609,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 161.29 123.19 0)
+		(at 210.82 73.66 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -3602,7 +3618,7 @@
 		(fields_autoplaced yes)
 		(uuid "653422c7-9ffc-419d-88f8-e7eff4788780")
 		(property "Reference" "#PWR02"
-			(at 161.29 129.54 0)
+			(at 210.82 80.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3611,7 +3627,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 161.29 128.27 0)
+			(at 210.82 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3619,7 +3635,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 161.29 123.19 0)
+			(at 210.82 73.66 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3628,7 +3644,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 161.29 123.19 0)
+			(at 210.82 73.66 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3637,7 +3653,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 161.29 123.19 0)
+			(at 210.82 73.66 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3745,7 +3761,7 @@
 	)
 	(symbol
 		(lib_id "power:+5V")
-		(at 179.07 105.41 0)
+		(at 228.6 55.88 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -3754,7 +3770,7 @@
 		(fields_autoplaced yes)
 		(uuid "8c26ab42-97d5-4b5d-a92a-ed415e2cc956")
 		(property "Reference" "#PWR01"
-			(at 179.07 109.22 0)
+			(at 228.6 59.69 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3763,7 +3779,7 @@
 			)
 		)
 		(property "Value" "+5V_{ESP32}"
-			(at 179.07 100.33 0)
+			(at 228.6 50.8 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3771,7 +3787,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 179.07 105.41 0)
+			(at 228.6 55.88 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3780,7 +3796,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 179.07 105.41 0)
+			(at 228.6 55.88 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3789,7 +3805,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 179.07 105.41 0)
+			(at 228.6 55.88 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3877,7 +3893,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole")
-		(at 236.22 25.4 0)
+		(at 146.05 167.64 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -3886,7 +3902,7 @@
 		(fields_autoplaced yes)
 		(uuid "abb40a50-72c8-4739-898c-104fcef2a122")
 		(property "Reference" "H1"
-			(at 238.76 24.1299 0)
+			(at 148.59 166.3699 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3895,7 +3911,7 @@
 			)
 		)
 		(property "Value" "MountingHole"
-			(at 238.76 26.6699 0)
+			(at 148.59 168.9099 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3904,7 +3920,7 @@
 			)
 		)
 		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_DIN965"
-			(at 236.22 25.4 0)
+			(at 146.05 167.64 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3913,7 +3929,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 236.22 25.4 0)
+			(at 146.05 167.64 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3922,7 +3938,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole without connection"
-			(at 236.22 25.4 0)
+			(at 146.05 167.64 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3941,7 +3957,7 @@
 	)
 	(symbol
 		(lib_id "power:+5V")
-		(at 215.9 95.25 0)
+		(at 265.43 45.72 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -3950,7 +3966,7 @@
 		(fields_autoplaced yes)
 		(uuid "b2d0cf79-39eb-427f-b9b2-5becbf2c887a")
 		(property "Reference" "#PWR08"
-			(at 215.9 99.06 0)
+			(at 265.43 49.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3959,7 +3975,7 @@
 			)
 		)
 		(property "Value" "+5V_{RELAY}"
-			(at 215.9 90.17 0)
+			(at 265.43 40.64 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3967,7 +3983,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 215.9 95.25 0)
+			(at 265.43 45.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3976,7 +3992,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 215.9 95.25 0)
+			(at 265.43 45.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3985,7 +4001,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 215.9 95.25 0)
+			(at 265.43 45.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4260,10 +4276,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "eb0dcedf-97f8-44b8-a29e-6f1e94f59230")
+			(uuid "eb0dcedf-97f8-44b8-a29e-6f1e94f59231")
 		)
 		(pin "2"
-			(uuid "c987d25f-302d-445a-b4c5-5c3c6e6fbf8f")
+			(uuid "c987d25f-302d-445a-b4c5-5c3c6e6fbf90")
 		)
 		(instances
 			(project "Router-Rebooter"
@@ -4412,7 +4428,7 @@
 	)
 	(symbol
 		(lib_id "Connector:Jack-DC")
-		(at 134.62 110.49 0)
+		(at 184.15 60.96 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4421,7 +4437,7 @@
 		(fields_autoplaced yes)
 		(uuid "e1e1cf6f-7e6b-4372-a887-815884fef8ba")
 		(property "Reference" "J1"
-			(at 134.62 101.6 0)
+			(at 184.15 52.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4429,7 +4445,7 @@
 			)
 		)
 		(property "Value" "12V Power In"
-			(at 134.62 104.14 0)
+			(at 184.15 54.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4437,7 +4453,7 @@
 			)
 		)
 		(property "Footprint" "Connector_BarrelJack:BarrelJack_CUI_PJ-063AH_Horizontal"
-			(at 135.89 111.506 0)
+			(at 185.42 61.976 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4446,7 +4462,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 135.89 111.506 0)
+			(at 185.42 61.976 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4455,7 +4471,7 @@
 			)
 		)
 		(property "Description" "DC Barrel Jack"
-			(at 134.62 110.49 0)
+			(at 184.15 60.96 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4480,7 +4496,7 @@
 	)
 	(symbol
 		(lib_id "Regulator_Linear:LM7805_TO220")
-		(at 196.85 95.25 0)
+		(at 246.38 45.72 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4489,7 +4505,7 @@
 		(fields_autoplaced yes)
 		(uuid "e24d5e71-dde1-4057-997b-7d0d3f696387")
 		(property "Reference" "U3"
-			(at 196.85 88.9 0)
+			(at 246.38 39.37 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4497,7 +4513,7 @@
 			)
 		)
 		(property "Value" "PSU2-5"
-			(at 196.85 91.44 0)
+			(at 246.38 41.91 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4505,7 +4521,7 @@
 			)
 		)
 		(property "Footprint" "Package_TO_SOT_THT:TO-220-3_Vertical"
-			(at 196.85 89.535 0)
+			(at 246.38 40.005 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4515,7 +4531,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.onsemi.cn/PowerSolutions/document/MC7800-D.PDF"
-			(at 196.85 96.52 0)
+			(at 246.38 46.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4524,7 +4540,7 @@
 			)
 		)
 		(property "Description" "Positive 1A 35V Linear Regulator, Fixed Output 5V, TO-220"
-			(at 196.85 95.25 0)
+			(at 246.38 45.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4552,7 +4568,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole")
-		(at 236.22 38.1 0)
+		(at 146.05 180.34 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -4561,7 +4577,7 @@
 		(fields_autoplaced yes)
 		(uuid "e7850ae6-a928-47db-8f88-2921621a624c")
 		(property "Reference" "H3"
-			(at 238.76 36.8299 0)
+			(at 148.59 179.0699 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4570,7 +4586,7 @@
 			)
 		)
 		(property "Value" "MountingHole"
-			(at 238.76 39.3699 0)
+			(at 148.59 181.6099 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4579,7 +4595,7 @@
 			)
 		)
 		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_DIN965"
-			(at 236.22 38.1 0)
+			(at 146.05 180.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4588,7 +4604,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 236.22 38.1 0)
+			(at 146.05 180.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4597,7 +4613,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole without connection"
-			(at 236.22 38.1 0)
+			(at 146.05 180.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4616,7 +4632,7 @@
 	)
 	(symbol
 		(lib_id "Regulator_Linear:LM7805_TO220")
-		(at 161.29 107.95 0)
+		(at 210.82 58.42 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4625,7 +4641,7 @@
 		(fields_autoplaced yes)
 		(uuid "ecb7e2f3-b688-4ad4-bbdb-244998de6250")
 		(property "Reference" "U2"
-			(at 161.29 101.6 0)
+			(at 210.82 52.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4633,7 +4649,7 @@
 			)
 		)
 		(property "Value" "PSU2-5"
-			(at 161.29 104.14 0)
+			(at 210.82 54.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4641,7 +4657,7 @@
 			)
 		)
 		(property "Footprint" "Package_TO_SOT_THT:TO-220-3_Vertical"
-			(at 161.29 102.235 0)
+			(at 210.82 52.705 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4651,7 +4667,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.onsemi.cn/PowerSolutions/document/MC7800-D.PDF"
-			(at 161.29 109.22 0)
+			(at 210.82 59.69 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4660,7 +4676,7 @@
 			)
 		)
 		(property "Description" "Positive 1A 35V Linear Regulator, Fixed Output 5V, TO-220"
-			(at 161.29 107.95 0)
+			(at 210.82 58.42 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4688,7 +4704,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole")
-		(at 236.22 44.45 0)
+		(at 146.05 186.69 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -4697,7 +4713,7 @@
 		(fields_autoplaced yes)
 		(uuid "f8d570c5-be2d-42be-8dfd-26f97c4fa3e0")
 		(property "Reference" "H4"
-			(at 238.76 43.1799 0)
+			(at 148.59 185.4199 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4706,7 +4722,7 @@
 			)
 		)
 		(property "Value" "MountingHole"
-			(at 238.76 45.7199 0)
+			(at 148.59 187.9599 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4715,7 +4731,7 @@
 			)
 		)
 		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_DIN965"
-			(at 236.22 44.45 0)
+			(at 146.05 186.69 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4724,7 +4740,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 236.22 44.45 0)
+			(at 146.05 186.69 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4733,7 +4749,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole without connection"
-			(at 236.22 44.45 0)
+			(at 146.05 186.69 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4812,10 +4828,10 @@
 			)
 		)
 		(pin "1"
-			(uuid "d1719877-d340-4d0a-86a9-bf3214b38ec8")
+			(uuid "d1719877-d340-4d0a-86a9-bf3214b38ec9")
 		)
 		(pin "2"
-			(uuid "9ce5457c-2ef0-4fbc-9f95-db4818fb1f32")
+			(uuid "9ce5457c-2ef0-4fbc-9f95-db4818fb1f33")
 		)
 		(instances
 			(project ""
