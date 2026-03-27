@@ -22,13 +22,33 @@ I'll wait five minutes before resuming pinging.  If pinging remains unsuccessful
 - [Part 1: Initial build & test](https://youtu.be/Fz1aSylL9KQ)
 
 ## Firmware (Arduino Sketch)
-Tested.<br>
-Uses the [ESPping library](https://github.com/dvarrel/ESPping).<br>
-Possible improvements:
-- Round robin or random selection of target IP address from a list - DONE
-- Use the ESP32-C3 dev board's inbuilt LED for ... something
+
+### Versions
+- [Tested version](/Router-Rebooter)
+- [Experimental version](/Experimental_version)
+
+### Required Libraries
+- [ESPping library](https://github.com/dvarrel/ESPping)
+- [Adafruit NeoPixel](https://github.com/adafruit/adafruit_neopixel)
+
+### Possible Improvements
+- Round robin or random selection of target IP address from a list - DONE!
+- Use the ESP32-C3 dev board's inbuilt LED for ... something - DONE!
 - Send a message after the router has been rebooted (via CallMeBot to WhatsApp?)
 - Reduce ESP32 power usage by only connecting to WiFi for ping test, then disconnecting? Or not worth the hassle ... ?
+
+## LED Status
+There are three LEDs: the OK LED (suggested green), the FAILURE LED (suggested red) and the ESP32's built-in LED (RGB).<br>
+
+| OK LED   | FAILURE LED | ESP32 LED           | Meaning                        |
+|----------|-------------|---------------------|--------------------------------|
+| On       | Off         | Green/blue flashing | Connecting to WiFi             |
+| On       | Off         | Off                 | Everything ok, waiting to ping |
+| On       | Off         | Blue pulse          | Pinging                        |
+| On       | On          | Red                 | Ping failed                    |
+| Off      | On          | Off                 | Ping retries failed            |
+| Off      | On          | Green flashing      | Router powered off             |
+| Flashing | On          | Off                 | Waiting for router to recover  |   
 
 ## Parts
 - OMRON GL5E-1-VD relay (or similar)
