@@ -18,18 +18,25 @@ After one minute I'll de-energise the relay and power the router back on.<br>
 
 I'll wait five minutes before resuming pinging.  If pinging remains unsuccessful 10min after powering back on then I'll repeat the process.<br>
 
-## Firmware
-\>\>\> WORK IN PROGRESS <<<
+## YouTube Videos
+- [Part 1: Initial build & test](https://youtu.be/Fz1aSylL9KQ)
+
+## Firmware (Arduino Sketch)
+Tested.<br>
+Possible improvements:
+- Round robin or random selection of target IP address from a list - DONE
+- Use the ESP32-C3 dev board's inbuilt LED for ... something
+- Send a message after the router has been rebooted (via CallMeBot to WhatsApp?)
+- Reduce ESP32 power usage by only connecting to WiFi for ping test, then disconnecting? Or not worth the hassle ... ?
 
 ## Parts
-- Songle SRD-05VDC-SL-C relay (or similar)
-- ESP32-C3-Zero (Waveshare)
+- OMRON GL5E-1-VD relay (or similar)
+- ESP32-C3-Zero development board (Waveshare)
 - 10µF capacitor for the ESP32 power
-- One 7805-type 5V regulator (i.e. [EzSBC's PSU2-5](https://ezsbc.shop/products/psu2-5-5v-1amp-three-pin-regulator)) to power the ESP
-- A second 7805-type 5V regulator to power the relay coil
+- One 7805-type 5V regulator (i.e. [EzSBC's PSU2-5](https://ezsbc.shop/products/psu2-5-5v-1amp-three-pin-regulator)) to power the ESP. I am using a switching regulator so don't have any provision for heatsinking a linear regulator.
 - Two 2.1mm DC power sockets to pass through the 12VDC
 - Some other bits (2N2222 transistor, 1KΩ resistor, 1N4148 diode) to connect the relay coil to the ESP32
-- Four M3 screws
+- Four M3 screws to mount it somehow
 
 I've sized the PCB (62x49mm) to fit an 83x54x31mm Jiffy Box [(Jaycar HB6015)](https://www.jaycar.com.au/jiffy-box-black-83-x-54-x-31mm/p/HB6015).<br>
 
