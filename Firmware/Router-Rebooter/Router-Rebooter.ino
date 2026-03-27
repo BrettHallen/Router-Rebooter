@@ -19,6 +19,16 @@
  *   Recovery:    OK LED flashes every second                        *
  *********************************************************************/
 
+/*
+ Improvement Ideas:
+ [1] Round robin or random selection of DNS address from a list
+ [2] Use the ESP32-C3 dev board's inbuilt LED
+ [3] Send message after router has been rebooted 
+     (via CallMeBot to WhatsApp?)
+ [4] Reduce ESP32 power usage by only connecting to WiFi for 
+     ping test, then disconnecting?
+*/
+
 #include <WiFi.h>
 #include <ESPping.h>
 
@@ -35,19 +45,21 @@ IPAddress targetIP(1, 1, 1, 1);            // Cloudflare primary
 // IPAddress targetIP(9, 9, 9, 9);         // Quad9 primary
 // IPAddress targetIP(149, 112, 112, 112); // Quad9 secondary
 
-/* Timers for testing */
-// const int PING_TIMER       = 15000; // delay being normal pings
-// const int PING_RETRIES     = 5;     // retry ping before failing
-// const int PING_RETRY_TIMER = 10000; // delay between retries
-// const int POWER_CYCLE_TIME = 30000; // delay for power cycling
-// const int RECOVERY_DELAY   = 5;     // how many minutes after power cycling before retrying
+/* Timers for testing
+const int PING_TIMER       = 15000; // delay being normal pings
+const int PING_RETRIES     = 3;     // retry ping before failing
+const int PING_RETRY_TIMER = 5000; // delay between retries
+const int POWER_CYCLE_TIME = 30000; // delay for power cycling
+const int RECOVERY_DELAY   = 3;     // how many minutes after power cycling before retrying
+*/
 
 /* Timers */
 const int PING_TIMER       = 60000; // delay being normal pings
 const int PING_RETRIES     = 5;     // retry ping before failing
 const int PING_RETRY_TIMER = 10000; // delay between retries
 const int POWER_CYCLE_TIME = 30000; // delay for power cycling
-const int RECOVERY_DELAY   = 5;     // how many minutes after power cycling before retrying
+const int RECOVERY_DELAY   = 3;     // how many minutes after power cycling before retrying
+*/
 
 /* GPIO pins */
 const int RELAY_PIN        = 5;   // GPIO5, active HIGH via 2N2222
