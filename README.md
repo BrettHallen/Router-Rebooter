@@ -23,6 +23,7 @@ I'll wait five minutes before resuming pinging.  If pinging remains unsuccessful
 
 ## Firmware (Arduino Sketch)
 Tested.<br>
+Uses the [ESPping library](https://github.com/dvarrel/ESPping).<br>
 Possible improvements:
 - Round robin or random selection of target IP address from a list - DONE
 - Use the ESP32-C3 dev board's inbuilt LED for ... something
