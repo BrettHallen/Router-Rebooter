@@ -1,8 +1,8 @@
 ﻿pos_x,pos_y,rotation,side,designator,mpn,pack,footprint,value,mount_type
 67.6464,-70.6474,0.0,top,C1,,,CP_Radial_D5.0mm_P2.50mm,10µF,tht
-82.8864,-51.5974,0.0,top,D1,,,D_DO-35_SOD27_P7.62mm_Horizontal,1N4148,tht
-108.2164,-37.0474,0.0,top,D2,,,LED_D3.0mm,OK,tht
-105.2164,-37.0474,180.0,top,D3,,,LED_D3.0mm,FAILURE,tht
+108.2164,-37.0474,0.0,top,D1,,,LED_D3.0mm,OK,tht
+105.2164,-37.0474,180.0,top,D2,,,LED_D3.0mm,FAILURE,tht
+82.8864,-51.5974,0.0,top,D3,,,D_DO-35_SOD27_P7.62mm_Horizontal,1N4148,tht
 107.2164,-47.5474,90.0,top,J1,,,BarrelJack_CUI_PJ-063AH_Horizontal,12V Power Out,tht
 61.2964,-59.5374,0.0,top,J2,,,PinHeader_1x02_P2.54mm_Vertical,ESP32 Power Bypass,tht
 70.2164,-47.5474,-90.0,top,J3,,,BarrelJack_CUI_PJ-063AH_Horizontal,12V Power In,tht

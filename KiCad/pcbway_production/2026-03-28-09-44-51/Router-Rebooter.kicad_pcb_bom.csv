@@ -1,8 +1,8 @@
-﻿Designator,Quantity,Value,Footprint,Package,MPN,DNP,Mount_Type,Description,Sim.Device,Sim.Pins
+﻿Designator,Quantity,Value,Footprint,Package,MPN,DNP,Mount_Type,Description,Sim.Pins,Sim.Device
 C1,1,10µF,CP_Radial_D5.0mm_P2.50mm,,,,tht,Polarized capacitor,,
-D1,1,1N4148,D_DO-35_SOD27_P7.62mm_Horizontal,,,,tht,Diode,D,1=K 2=A
-D2,1,OK,LED_D3.0mm,,,,tht,Light emitting diode,,1=K 2=A
-D3,1,FAILURE,LED_D3.0mm,,,,tht,Light emitting diode,,1=K 2=A
+D1,1,OK,LED_D3.0mm,,,,tht,Light emitting diode,1=K 2=A,
+D2,1,FAILURE,LED_D3.0mm,,,,tht,Light emitting diode,1=K 2=A,
+D3,1,1N4148,D_DO-35_SOD27_P7.62mm_Horizontal,,,,tht,Diode,1=K 2=A,D
 J1,1,12V Power Out,BarrelJack_CUI_PJ-063AH_Horizontal,,,,tht,DC Barrel Jack,,
 J2,1,ESP32 Power Bypass,PinHeader_1x02_P2.54mm_Vertical,,,,tht,"Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)",,
 J3,1,12V Power In,BarrelJack_CUI_PJ-063AH_Horizontal,,,,tht,DC Barrel Jack,,

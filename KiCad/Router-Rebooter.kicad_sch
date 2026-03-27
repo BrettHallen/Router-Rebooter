@@ -3185,7 +3185,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "407e6945-d063-484e-ae75-8acc7327a700")
-		(property "Reference" "D3"
+		(property "Reference" "D2"
 			(at 99.822 89.916 0)
 			(effects
 				(font
@@ -3246,7 +3246,7 @@
 		(instances
 			(project ""
 				(path "/8de648ee-e13b-40be-adc8-7d40ce8ea697"
-					(reference "D3")
+					(reference "D2")
 					(unit 1)
 				)
 			)
@@ -3533,7 +3533,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "7f485cc4-c2d0-4ed5-86f1-3e84612ba081")
-		(property "Reference" "D1"
+		(property "Reference" "D3"
 			(at 148.59 58.42 0)
 			(effects
 				(font
@@ -3603,7 +3603,7 @@
 		(instances
 			(project "Router-Rebooter"
 				(path "/8de648ee-e13b-40be-adc8-7d40ce8ea697"
-					(reference "D1")
+					(reference "D3")
 					(unit 1)
 				)
 			)
@@ -4564,7 +4564,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "fb31dbd0-4d76-4a67-bc90-45db8ebd1366")
-		(property "Reference" "D2"
+		(property "Reference" "D1"
 			(at 85.09 88.392 0)
 			(effects
 				(font
@@ -4625,7 +4625,7 @@
 		(instances
 			(project ""
 				(path "/8de648ee-e13b-40be-adc8-7d40ce8ea697"
-					(reference "D2")
+					(reference "D1")
 					(unit 1)
 				)
 			)
