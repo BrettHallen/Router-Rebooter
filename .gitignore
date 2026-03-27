@@ -5,3 +5,5 @@ KiCad/fp-info-cache
 KiCad/pcbway_production/.DS_Store
 *.kicad_prl
 /KiCad/Router-Rebooter-backups
+/KiCad/RevC/Router-Rebooter-backups
+KiCad/RevC/fp-info-cache
