@@ -33,9 +33,10 @@
 #include <WiFi.h>
 #include <ESPping.h>
 
-/* Configuration */
+/* Configuration - CUSTOMISE HERE \/\/\/\/\/\/\/\/\/\/\/\/\/\/ */
 const char* ssid     = "RouterRebootTest";  // Your WiFi AP here
 const char* password = "Today123!";         // Your WiFi password here
+/* /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ */
 
 // Round-robin DNS list 
 const IPAddress dnsList[] = {
