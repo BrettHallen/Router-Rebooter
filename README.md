@@ -21,7 +21,7 @@ I'll wait five minutes before resuming pinging.  If pinging remains unsuccessful
 ## YouTube Videos
 - [Part 1: Initial build & test](https://youtu.be/Fz1aSylL9KQ)
 
-## Firmware
+## Firmware (Arduino Sketch)
 Tested.<br>
 Possible improvements:
 - Round robin or random selection of target IP address from a list - DONE
