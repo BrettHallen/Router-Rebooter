@@ -9,8 +9,8 @@
 	(paper "A5")
 	(title_block
 		(title "Broadband Router Rebooter")
-		(date "22/JAN/2026")
-		(rev "A")
+		(date "28/MAR/2026")
+		(rev "B")
 		(company "Brett Hallen")
 		(comment 4 "PCB sized for an 83x54x31mm Jiffy Box (Jaycar HB6015)")
 	)
