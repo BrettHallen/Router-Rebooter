@@ -47,7 +47,7 @@ There are three LEDs: the OK LED (suggested green), the FAILURE LED (suggested r
 | On       | Off         | Blue pulse          | Pinging                        |
 | On       | On          | Red                 | Ping failed                    |
 | Off      | On          | Off                 | Ping retries failed            |
-| Off      | On          | Green flashing      | Router powered off             |
+| Off      | On          | Green flashing      | Router power cycling           |
 | Flashing | On          | Off                 | Waiting for router to recover  |   
 
 ## Parts
