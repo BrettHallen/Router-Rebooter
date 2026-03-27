@@ -1,0 +1,14 @@
+﻿Designator,Quantity,Value,Footprint,Package,MPN,DNP,Mount_Type,Description,Sim.Pins,Sim.Device
+C1,1,10µF,CP_Radial_D5.0mm_P2.50mm,,,,tht,Polarized capacitor,,
+D1,1,OK,LED_D3.0mm,,,,tht,Light emitting diode,1=K 2=A,
+D2,1,FAILURE,LED_D3.0mm,,,,tht,Light emitting diode,1=K 2=A,
+D3,1,1N4148,D_DO-35_SOD27_P7.62mm_Horizontal,,,,tht,Diode,1=K 2=A,D
+J1,1,12V Out,PinHeader_1x02_P2.54mm_Vertical,,,,tht,"Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)",,
+J2,1,ESP32 Power Bypass,PinHeader_1x02_P2.54mm_Vertical,,,,tht,"Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)",,
+J3,1,12V In,PinHeader_1x02_P2.54mm_Vertical,,,,tht,"Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)",,
+K1,1,OMRON G5LE-1-VD,Relay_SPDT_Omron-G5LE-1,,,,tht,"Sanyo SRD relay, Single Pole Miniature Power Relay, Opening Contact",,
+Q1,1,PN2222A,TO-92_Inline,,,,tht,"1A Ic, 40V Vce, NPN Transistor, General Purpose Transistor, TO-92",,
+"R1, R2",2,R,R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal,,,,tht,Resistor,,
+R3,1,1KΩ,R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal,,,,tht,Resistor,,
+U1,1,PSU2-5,TO-220-3_Horizontal_TabDown,,,,tht,"Positive 1A 35V Linear Regulator, Fixed Output 5V, TO-220",,
+U2,1,ESP32-C3-Zero,Waveshare-ESP32-C3-Zero,,,,smt,,,
