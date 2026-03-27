@@ -32,7 +32,7 @@
 */
 
 /* Uncomment for debug/testing \/\/\/\/\/\/\/\/\/ */
-// #define DEBUG_MODE // testing settings or normal
+#define DEBUG_MODE // testing settings or normal
 /* /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ */
 #define RELAY_ENERGISE   HIGH     // Energise coil = cut power to router (NO contact)
 #define RELAY_DEENERGISE LOW      // De-energise coil = restore power (NC contact)
@@ -129,7 +129,7 @@ void setup()
   Serial.println(">> Hardware initialised: Router on, OK LED on, FAILUIRE LED off, Ping LED off.");
 }
 
-/* Connect to the configuraed WiFi AP and get an IP address */
+/* Connect to the configured WiFi AP and get an IP address */
 void connectToWiFi() 
 {
   Serial.print(">> Connecting to WiFi network <");
@@ -158,7 +158,6 @@ void connectToWiFi()
   Serial.println(">.");
   pixels.setPixelColor(0, pixels.Color(0, 0, 0));
   pixels.show();
-
 }
 
 /* Ping the well-known IP address to verify we can talk to the Internet */
