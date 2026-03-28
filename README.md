@@ -22,6 +22,7 @@ I'll wait five minutes before resuming pinging.  If pinging remains unsuccessful
 - [Part 1: Initial build & test](https://youtu.be/Fz1aSylL9KQ)
 
 ## Firmware (Arduino Sketch)
+Use the Arduino IDE to compile & transfer to the ESP32.<br>
 
 ### Versions
 - [Tested version](/Router-Rebooter)
@@ -50,7 +51,12 @@ There are three LEDs: the OK LED (suggested green), the FAILURE LED (suggested r
 | Off      | On          | Green flashing      | Router power cycling           |
 | Flashing | On          | Off                 | Waiting for router to recover  |   
 
-## Parts
+## Hardware
+There's currently two versions:
+- [Rev. B](/KiCad/RevB) based on my original design with 2.1mm DC sockets and vertically mounted regulator 
+- [Rev. C](/KiCad/RevC) removes the 2.1mm DC sockets and lies the 5V regulator down 
+
+### Parts
 - OMRON GL5E-1-VD relay (or similar)
 - ESP32-C3-Zero development board (Waveshare)
 - 10µF capacitor for the ESP32 power
