@@ -31,9 +31,9 @@
      ping test, then disconnecting?                             - NO
 */
 
-/* Uncomment for debug/testing \/\/\/\/\/\/\/\/\/ */
-//#define DEBUG_MODE // testing settings or normal
-/* /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ */
+/* Uncomment for debug/testing \/\/\/\/\/\/\/\/\/\ */
+//#define DEBUG_MODE   /* testing settings or normal */
+/* /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ */
 #define RELAY_ENERGISE   HIGH     // Energise coil = cut power to router (NO contact)
 #define RELAY_DEENERGISE LOW      // De-energise coil = restore power (NC contact)
 
@@ -41,10 +41,10 @@
 #include <ESPping.h>
 #include <Adafruit_NeoPixel.h>   // Required for the WS2812 RGB LED on the Waveshare ESP32-C3-Zero
 
-/* WiFi configuration \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/  */
-const char* ssid     = "RouterRebootTest";  // Your WiFi AP here
-const char* password = "Today123!";         // Your WiFi password here
-/* /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ */
+/* Modify WiFi configuration \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ */
+const char* ssid     = "RouterRebootTest";  /* Your WiFi AP here       */
+const char* password = "Today123!";         /* Your WiFi password here */
+/* /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ */
 
 #ifdef DEBUG_MODE
   // Round-robin DNS list (cycles through all target IPs)
@@ -95,6 +95,48 @@ const int BUILTIN_LED_PIN  = 10;  // WS2812 RGB LED on GPIO10 (Waveshare ESP32-C
 /* NeoPixel object for the built-in RGB LED */
 Adafruit_NeoPixel pixels(1, BUILTIN_LED_PIN, NEO_GRB + NEO_KHZ800);
 
+/* Helper to print a human-readable WiFi status message */
+void printWiFiStatus()
+{
+  int status = WiFi.status();
+
+  if (status != WL_CONNECTED)
+  {
+    Serial.print("!! WiFi status = ");
+    Serial.print(status);
+    Serial.print(" (");
+
+    switch (status)
+    {
+      case WL_IDLE_STATUS:
+        Serial.println("idle, not attempting to connect)");
+        break;
+      case WL_NO_SSID_AVAIL:
+        Serial.println("SSID not found, check network name/range?)");
+        break;
+      case WL_CONNECT_FAILED:
+        Serial.println("connection failed, wrong password/auth. issue?)");
+        break;
+      case WL_CONNECTION_LOST:
+        Serial.println("connection lost)");
+        break;
+      case WL_DISCONNECTED:
+        Serial.println("disconnected, also check SSID and/or password)");
+        break;
+      case WL_NO_SHIELD:
+        Serial.println("I somehow have no WiFi hardware!)");
+        break;
+      default:
+        Serial.println("unknown error)");
+        break;
+    }
+  }
+  else
+  {
+    Serial.println(">> WiFi status = 3 (successfully connected!)");
+  }
+}
+
 void setup() 
 {
   Serial.begin(115200);
@@ -134,7 +176,7 @@ void connectToWiFi()
 {
   Serial.print(">> Connecting to WiFi network <");
   Serial.print(ssid);
-  Serial.print("> .");
+  Serial.println("> ...");
 
   WiFi.begin(ssid, password);
 
@@ -147,11 +189,10 @@ void connectToWiFi()
     pixels.setPixelColor(0, pixels.Color(0, 0, 255));
     pixels.show();
     delay(250);
-    Serial.print(".");
+    printWiFiStatus(); 
   }
-  Serial.println();
 
-  Serial.print("   Connected to <");
+  Serial.print(">> Connected to <");
   Serial.print(ssid);
   Serial.print("> with address <");
   Serial.print(WiFi.localIP());
@@ -216,7 +257,8 @@ void loop()
     // Safety check
     if (WiFi.status() != WL_CONNECTED) 
     {
-      Serial.println("!! WiFi lost – reconnecting...");
+      Serial.println("!! WiFi lost – reconnecting ...");
+      printWiFiStatus(); 
       break;
     }
 
@@ -259,32 +301,36 @@ void loop()
 
     Serial.print("   Waiting ");
     Serial.print(POWER_CYCLE_TIME);
-    Serial.println("s before reconnecting power.");
-    for (int seconds = POWER_CYCLE_TIME; seconds > 0; seconds--) 
+    Serial.println("s before reconnecting power ...");
+    int COUNT_DOWN_STEP = 5; // Output remaining time every 5s
+    for (int seconds = POWER_CYCLE_TIME; seconds > 0; seconds-=COUNT_DOWN_STEP) 
     {
       Serial.print("   ");
       Serial.print(seconds);
       Serial.println("s");
-      // Flash ESP32 LED during wait
-      pixels.setPixelColor(0, pixels.Color(255, 0, 0));
-      pixels.show();
-      delay(500);                  // 0.5s
-      pixels.setPixelColor(0, pixels.Color(0, 0, 0));
-      pixels.show();
-      delay(500);                  // 0.5s
+      // Flash ESP32 LED every 1s
+      for (int i = 0; i < COUNT_DOWN_STEP; i++)
+      {
+        pixels.setPixelColor(0, pixels.Color(255, 0, 0));
+        pixels.show();
+        delay(500); // 0.5s
+        pixels.setPixelColor(0, pixels.Color(0, 0, 0));
+        pixels.show();
+        delay(500); // 0.5s
+      }
     }
     Serial.println(">> Powering router back on.");
     digitalWrite(RELAY_PIN, RELAY_DEENERGISE); // De-energise relay, reconnect power
 
     // Recovery countdown with flashing OK LED
-    Serial.println(">> Starting recovery wait (OK LED flashing).");
+    Serial.println(">> Starting recovery wait ...");
     for (int minutes = RECOVERY_DELAY; minutes > 0; minutes--) 
     {
       Serial.print("   Waiting ");
       Serial.print(minutes);
       Serial.println("min");
 
-      // Flash OK LED for the full minute
+      // Flash OK LED every 1s
       for (int i = 0; i < 60; i++) 
       {
         digitalWrite(OK_LED_PIN, HIGH);
@@ -294,7 +340,7 @@ void loop()
       }
     }
 
-    Serial.println(">> Router recovery finished – restarting monitoring");
+    Serial.println(">> Router recovery finished – restarting monitoring.");
     Serial.println();
     Serial.println();
 
