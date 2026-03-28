@@ -24,6 +24,84 @@ I'll wait five minutes before resuming pinging.  If pinging remains unsuccessful
 ## Firmware (Arduino Sketch)
 Use the Arduino IDE to compile & transfer to the ESP32.<br>
 
+## Examples
+This is how it works using the serial port output - here we simulate the loss of Internet by using dummy IP addresses:<br>
+```
+>> Brett's Router Rebooter Starting!
+   (28/Mar/2026)
+>> Timer/retry settings (DEBUG):
+   Ping timer .......... 10s
+   Ping retries ........ 3
+   Ping retry timer .... 5s
+   Power cycle timer ... 30s
+   Recovery delay ...... 2min
+>> Hardware initialised: Router on, OK LED on, FAILUIRE LED off, Ping LED off.
+>> Connecting to WiFi network <RouterRebootTest> ...
+!! WiFi status = 0 (idle, not attempting to connect)
+!! WiFi status = 0 (idle, not attempting to connect)
+!! WiFi status = 0 (idle, not attempting to connect)
+>> WiFi status = 3 (successfully connected!)
+>> Connected to <RouterRebootTest> with address <192.168.1.36>.
+>> Pinging 1.1.1.1 ... OK!
+>> Pinging 192.168.123.123 ... failed!
+>> Pinging 1.0.0.1 ... OK!
+>> Pinging 192.168.123.123 ... failed!
+>> Pinging 192.168.123.123 ... failed!
+>> Pinging 192.168.123.123 ... failed!
+>> Pinging 192.168.123.123 ... failed!
+!! No response after retries, disconnecting router power.
+   Waiting 30s before reconnecting power ...
+   30s
+   25s
+   20s
+   15s
+   10s
+   5s
+>> Powering router back on.
+>> Starting recovery wait ...
+   Waiting 2min
+   Waiting 1min
+>> Router recovery finished – restarting monitoring.
+
+
+>> Connecting to WiFi network <RouterRebootTest> ...
+!! WiFi status = 0 (idle, not attempting to connect)
+!! WiFi status = 0 (idle, not attempting to connect)
+!! WiFi status = 0 (idle, not attempting to connect)
+!! WiFi status = 0 (idle, not attempting to connect)
+>> WiFi status = 3 (successfully connected!)
+>> Connected to <RouterRebootTest> with address <192.168.1.36>.
+>> Pinging 1.1.1.1 ... OK!
+
+... and so on ...
+```
+And this is what it does when the Internet is fine, which should be 99.9% of the time:
+```
+>> Brett's Router Rebooter Starting!
+   (28/Mar/2026)
+>> Timer/retry settings:
+   Ping timer .......... 30s
+   Ping retries ........ 5
+   Ping retry timer .... 15s
+   Power cycle timer ... 30s
+   Recovery delay ...... 3min
+>> Hardware initialised: Router on, OK LED on, FAILUIRE LED off, Ping LED off.
+>> Connecting to WiFi network <RouterRebootTest> ...
+!! WiFi status = 0 (idle, not attempting to connect)
+!! WiFi status = 0 (idle, not attempting to connect)
+!! WiFi status = 0 (idle, not attempting to connect)
+!! WiFi status = 0 (idle, not attempting to connect)
+>> WiFi status = 3 (successfully connected!)
+>> Connected to <RouterRebootTest> with address <192.168.1.36>.
+>> Pinging 1.1.1.1 ... OK!
+>> Pinging 1.0.0.1 ... OK!
+>> Pinging 8.8.8.8 ... OK!
+>> Pinging 8.8.4.4 ... OK!
+>> Pinging 9.9.9.9 ... OK!
+>> Pinging 149.112.112.112 ... OK!
+>> Pinging 1.1.1.1 ... OK!
+```
+
 ### Versions
 - [Tested version](/Router-Rebooter)
 - [Experimental version](/Experimental_version)
