@@ -95,6 +95,48 @@ const int BUILTIN_LED_PIN  = 10;  // WS2812 RGB LED on GPIO10 (Waveshare ESP32-C
 /* NeoPixel object for the built-in RGB LED */
 Adafruit_NeoPixel pixels(1, BUILTIN_LED_PIN, NEO_GRB + NEO_KHZ800);
 
+/* Helper to print a human-readable WiFi status message */
+void printWiFiStatus()
+{
+  int status = WiFi.status();
+
+  if (status != WL_CONNECTED)
+  {
+    Serial.print("!! WiFi status = ");
+    Serial.print(status);
+    Serial.print(" (");
+
+    switch (status)
+    {
+      case WL_IDLE_STATUS:
+        Serial.println("idle, not attempting to connect)");
+        break;
+      case WL_NO_SSID_AVAIL:
+        Serial.println("SSID not found, check network name/range?)");
+        break;
+      case WL_CONNECT_FAILED:
+        Serial.println("connection failed, wrong password/auth. issue?)");
+        break;
+      case WL_CONNECTION_LOST:
+        Serial.println("connection lost)");
+        break;
+      case WL_DISCONNECTED:
+        Serial.println("disconnected, also check SSID and/or password)");
+        break;
+      case WL_NO_SHIELD:
+        Serial.println("I somehow have no WiFi hardware!)");
+        break;
+      default:
+        Serial.println("unknown error)");
+        break;
+    }
+  }
+  else
+  {
+    Serial.println(">> WiFi status = 3 (successfully connected!)");
+  }
+}
+
 void setup() 
 {
   Serial.begin(115200);
@@ -134,7 +176,7 @@ void connectToWiFi()
 {
   Serial.print(">> Connecting to WiFi network <");
   Serial.print(ssid);
-  Serial.print("> .");
+  Serial.println("> ...");
 
   WiFi.begin(ssid, password);
 
@@ -147,11 +189,10 @@ void connectToWiFi()
     pixels.setPixelColor(0, pixels.Color(0, 0, 255));
     pixels.show();
     delay(250);
-    Serial.print(".");
+    printWiFiStatus(); 
   }
-  Serial.println();
 
-  Serial.print("   Connected to <");
+  Serial.print(">> Connected to <");
   Serial.print(ssid);
   Serial.print("> with address <");
   Serial.print(WiFi.localIP());
@@ -216,7 +257,8 @@ void loop()
     // Safety check
     if (WiFi.status() != WL_CONNECTED) 
     {
-      Serial.println("!! WiFi lost – reconnecting...");
+      Serial.println("!! WiFi lost – reconnecting ...");
+      printWiFiStatus(); 
       break;
     }
 
