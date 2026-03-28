@@ -21,9 +21,6 @@ After another short delay whilst the router reconnects (2-3min) I'll reconnect t
 ## YouTube Videos
 - [Part 1: Initial build & test](https://youtu.be/Fz1aSylL9KQ)
 
-## Firmware (Arduino Sketch)
-Use the Arduino IDE to compile & transfer to the ESP32.<br>
-
 ## Examples
 This is how it works using the serial port output - here we simulate the loss of Internet by using dummy IP addresses:<br>
 ```
@@ -101,6 +98,9 @@ And this is what it does when the Internet is fine, which should be 99.9% of the
 >> Pinging 149.112.112.112 ... OK!
 >> Pinging 1.1.1.1 ... OK!
 ```
+
+## Firmware (Arduino Sketch)
+Use the Arduino IDE to compile & transfer to the ESP32.<br>
 
 ### Versions
 - [Tested version](/Router-Rebooter)
