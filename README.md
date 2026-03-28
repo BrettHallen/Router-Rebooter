@@ -8,15 +8,15 @@ Yes, yes, I shouldn't be using cloud-enabled devices which will get bricked at t
 And yes, there are devices that do this - they seemed a bit pricey.<br>
 
 ## Idea
-The broadband router I have is a Netcomm Wireless NF18ACV that runs on 12VDC.<br>
+The broadband router I have is a Netcomm Wireless NF18ACV that runs on 12VDC.  We got it when we originally had FTTN (fibre to the node) which runs optical fibre to a street cabinet/node and then uses the decades-old telephone copper cabling to the house.  Where we live now has FTTP (fibre to the premises) where the optical fibre runs straight to the house.  The same router still works fine so have never replaced it.<br>
 
-I'll use an ESP32-type device to ping a reliable Internet address every minute, say a well-known DNS address like 1.1.1.1.<br>
+I'll use an ESP32-type device to ping a reliable Internet address every minute, say a well-known DNS address like 1.1.1.1.  The ESP32 will be powered from the 12V input supply via a 5V regulator.  The power to the router will run through an NC (normally closed) relay.<br>
 
-If there is no response for, say, five consecutive pings then I'll energise the relay and power off the router.<br>
+If there is no response for a few consecutive pings then I'll energise the relay which switches to open and disconnects the 12V to the router.<br>
 
-After one minute I'll de-energise the relay and power the router back on.<br>
+After a short delay I'll then de-energise the relay and power the router back on.<br>
 
-I'll wait five minutes before resuming pinging.  If pinging remains unsuccessful 10min after powering back on then I'll repeat the process.<br>
+After another short delay whilst the router reconnects (2-3min) I'll reconnect to the WiFi network and resume pinging.
 
 ## YouTube Videos
 - [Part 1: Initial build & test](https://youtu.be/Fz1aSylL9KQ)
