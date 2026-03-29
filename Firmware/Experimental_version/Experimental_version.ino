@@ -186,8 +186,7 @@ String timeAgo(uint32_t lastTime)
 /* Serve the HTTP status page */
 void serveHttpPage(WiFiClient &client)
 {
-  Serial.print(">> Sending status page to ");
-  Serial.println(client.remoteIP());
+  Serial.print(">> Sending status page to <"); Serial.print(client.remoteIP()); Serial.println(">");
 
   client.println("HTTP/1.1 200 OK");
   client.println("Content-type:text/html");
@@ -243,7 +242,7 @@ void handleHttpClients()
   WiFiClient client = httpServer.available();
   if (client) 
   {
-    Serial.print(">> Received HTTP GET from ");  Serial.println(client.remoteIP());
+    Serial.print(">> Received HTTP GET from <");  Serial.print(client.remoteIP()); Serial.println(">");
     serveHttpPage(client);
     client.stop();
   }
@@ -303,7 +302,7 @@ void connectToWiFi()
 
 #ifdef STATIC_IP
   WiFi.config(staticIP, gateway, subnet, dns);
-  Serial.print(">> Using static IP address <"); Serial.print(staticIP); Serial.println(">.");
+  Serial.print(">> Using static IP address <"); Serial.print(staticIP); Serial.println(">");
 #endif
 
   WiFi.begin(ssid, password);
@@ -319,7 +318,7 @@ void connectToWiFi()
     printWiFiStatus(); 
   }
 
-  Serial.print(">> Connected to <"); Serial.print(ssid); Serial.print("> with address <"); Serial.print(WiFi.localIP()); Serial.println(">.");
+  Serial.print(">> Connected to <"); Serial.print(ssid); Serial.print("> with address <"); Serial.print(WiFi.localIP()); Serial.println(">");
 
   pixels.setPixelColor(0, pixels.Color(0, 0, 0));
   pixels.show();
