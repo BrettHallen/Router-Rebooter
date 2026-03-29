@@ -111,14 +111,11 @@ Experimental version: added static IP address and HTTP status/statistics page
 ![Status page](/Images/Router_Rebooter_status_page.jpg)
 
 ### Required Libraries
-- [ESPping library](https://github.com/dvarrel/ESPping)
+- [ESPping](https://github.com/dvarrel/ESPping)
 - [Adafruit NeoPixel](https://github.com/adafruit/adafruit_neopixel)
 
 ### Possible Improvements
-- Round robin or random selection of target IP address from a list - DONE!
-- Use the ESP32-C3 dev board's inbuilt LED for ... something - DONE!
 - Send a message after the router has been rebooted (via CallMeBot to WhatsApp?)
-- Reduce ESP32 power usage by only connecting to WiFi for ping test, then disconnecting? Or not worth the hassle ... ?
 
 ## LED Status
 There are three LEDs: the OK LED (suggested green), the FAILURE LED (suggested red) and the ESP32's built-in LED (RGB).<br>
@@ -135,7 +132,7 @@ There are three LEDs: the OK LED (suggested green), the FAILURE LED (suggested r
 
 ## Hardware
 There's currently two versions:
-- [Rev. B](/KiCad/RevB) based on my original design with 2.1mm DC sockets and vertically mounted regulator 
+- [Rev. B](/KiCad/RevB) minor corrections of my original design with 2.1mm DC sockets and vertically mounted regulator 
 - [Rev. C](/KiCad/RevC) removes the 2.1mm DC sockets and lies the 5V regulator down 
 
 ### Parts
