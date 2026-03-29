@@ -106,6 +106,8 @@ Use the Arduino IDE to compile & transfer to the ESP32.<br>
 - [Tested version](/Router-Rebooter)
 - [Experimental version](/Experimental_version)
 
+Experimental version: added static IP address and HTTP status/statistics page
+
 ### Required Libraries
 - [ESPping library](https://github.com/dvarrel/ESPping)
 - [Adafruit NeoPixel](https://github.com/adafruit/adafruit_neopixel)
