@@ -168,7 +168,7 @@ void setup()
   pixels.setPixelColor(0, pixels.Color(0, 0, 0));    // Built-in LED OFF at boot
   pixels.show();
 
-  Serial.println(">> Hardware initialised: Router on, OK LED on, FAILUIRE LED off, Ping LED off.");
+  Serial.println(">> Hardware initialised: Router on, OK LED on, FAILURE LED off, ESP32 LED off.");
 }
 
 /* Connect to the configured WiFi AP and get an IP address */
