@@ -108,7 +108,7 @@ Use the Arduino IDE to compile & transfer to the ESP32.<br>
 
 Experimental version: added static IP address and HTTP status/statistics page
 
-![Status page](/Images/Router_Rebooter_status_page.jpg)
+![Status page](/Images/Router_Rebooter_status_page.png)
 
 ### Required Libraries
 - [ESPping](https://github.com/dvarrel/ESPping)
