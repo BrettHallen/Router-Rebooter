@@ -1,0 +1,15 @@
+﻿pos_x,pos_y,rotation,side,designator,mpn,pack,footprint,value,mount_type
+116.875512,-44.0584,180.0,top,C1,,,CP_Radial_D5.0mm_P2.50mm,10µF,tht
+63.3464,-60.5684,180.0,top,D1,,,LED_D3.0mm,OK,tht
+67.2834,-60.5684,0.0,top,D2,,,LED_D3.0mm,FAILURE,tht
+94.5884,-62.2194,180.0,top,D3,,,D_DO-35_SOD27_P7.62mm_Horizontal,1N4148,tht
+67.5374,-68.8234,0.0,top,J1,,,PinHeader_1x02_P2.54mm_Vertical,12V Out,tht
+115.6704,-61.2034,180.0,top,J2,,,PinHeader_1x02_P2.54mm_Vertical,ESP32 Power Bypass,tht
+107.9234,-70.0934,0.0,top,J3,,,PinHeader_1x02_P2.54mm_Vertical,12V In,tht
+96.5504,-72.6894,-90.0,top,K1,,,Relay_SPDT_Omron-G5LE-1,OMRON G5LE-1-VD,tht
+78.3324,-58.7904,-90.0,top,Q1,,,TO-92_Inline,PN2222A,tht
+60.8064,-46.8524,-90.0,top,R1,,,R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal,R,tht
+67.2834,-46.8524,-90.0,top,R2,,,R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal,R,tht
+94.5884,-58.2824,180.0,top,R3,,,R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal,1KΩ,tht
+103.7324,-61.2034,0.0,top,U1,,,TO-220-3_Horizontal_TabDown,PSU2-5,tht
+85.7004,-44.0894,90.0,top,U2,,,Waveshare-ESP32-C3-Zero,ESP32-C3-Zero,smt
