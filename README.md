@@ -150,4 +150,11 @@ I've sized the PCB (62x49mm) to fit an 83x54x31mm Jiffy Box [(Jaycar HB6015)](ht
 Waveshare ESP32-C3-Zero symbol/footprint/3D model from:<br>
 https://github.com/jonathanadams/KiCad-Waveshare-ESP32
 
+## Images
+### Rev A. version built
+The green OK LED indicates normal operation of the router and the blue ESP32 LED indicates it's currently sending a test ping to test reachability.
+
+![Rev A under test](/Images/Broadband_Router_Rebooter_RevA.png)
+
+### Rev. C version 3D rendering
 ![Router Rebooter 3D](/Images/Broadband_Router_Rebooter_3D.png)
