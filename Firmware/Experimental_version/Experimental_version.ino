@@ -54,7 +54,7 @@ const char* password = "Today123!";         /* Your WiFi password here */
 /* /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ */
 
 #ifdef STATIC_IP
-const IPAddress staticIP(192, 168, 128, 128);   /* your static IP address */
+const IPAddress staticIP(192, 168, 128, 129);   /* your static IP address */
 const IPAddress gateway(192, 168, 1, 1);        /* your router/gateway IP address */
 const IPAddress subnet(255, 255, 0, 0);         /* your netmask */
 const IPAddress dns(1, 1, 1, 1);                /* DNS IP address */
@@ -108,6 +108,7 @@ int currentIPIndex = 0;     // round-robin index
 uint32_t okCount[NUM_DNS]   = {0};
 uint32_t failCount[NUM_DNS] = {0};
 uint32_t lastRebootTime     = 0;   // millis() when last router reboot occurred
+uint32_t esp32UpTime        = 0;   // millis() since last ESP32 restart
 
 /* GPIO pins */
 const int RELAY_PIN        = 5;   // GPIO5, active HIGH via 2N2222
@@ -206,18 +207,20 @@ void serveHttpPage(WiFiClient &client)
   client.print("<h1><u>Brett's Router Rebooter (29/Mar/2026)</u></h1>");
   
   client.print("<h2>Connection</h2>");
-  client.println("<table><tr><th>WiFi AP name</th><th>IP address</th><th>Last reboot</th></tr>");
+  client.println("<table><tr><th>WiFi AP name</th><th>IP address</th><th>Last router reboot</th><th>Last ESP32 reboot</th></tr>");
   client.print("<tr><td>");
   client.print(ssid);
   client.print("</td><td>");
   client.print(WiFi.localIP());
   client.print("</td><td>");
   client.print(timeAgo(lastRebootTime));
+  client.print("</td><td>");
+  client.print(timeAgo(esp32UpTime));
   client.print("</td></tr>");
   client.print("</table></p>");
 
-  client.println("<h2>Pinging statistics</h2>");
-  client.println("<table><tr><th>Ping Address</th><th>OK pings</th><th>Failed pings</th></tr>");
+  client.println("<h2>Rechability statistics</h2>");
+  client.println("<table><tr><th>Target address</th><th>OK pings</th><th>Failed pings</th></tr>");
 
   for (int i = 0; i < NUM_DNS; i++)
   {
@@ -240,8 +243,7 @@ void handleHttpClients()
   WiFiClient client = httpServer.available();
   if (client) 
   {
-    Serial.print(">> Received HTTP GET from ");
-    Serial.println(client.remoteIP());
+    Serial.print(">> Received HTTP GET from ");  Serial.println(client.remoteIP());
     serveHttpPage(client);
     client.stop();
   }
@@ -264,6 +266,8 @@ void setup()
   delay(1000);
   Serial.println("\n\n>> Brett's Router Rebooter Starting!");
   Serial.println("   (29/Mar/2026)");
+
+  esp32UpTime = millis();
 
 #ifdef DEBUG_MODE
   Serial.println(">> Timer/retry settings (DEBUG):");
@@ -295,15 +299,11 @@ void setup()
 
 void connectToWiFi() 
 {
-  Serial.print(">> Connecting to WiFi network <");
-  Serial.print(ssid);
-  Serial.println("> ...");
+  Serial.print(">> Connecting to WiFi network <"); Serial.print(ssid); Serial.println("> ...");
 
 #ifdef STATIC_IP
   WiFi.config(staticIP, gateway, subnet, dns);
-  Serial.print(">> Using static IP address <");
-  Serial.print(staticIP);
-  Serial.println(">.");
+  Serial.print(">> Using static IP address <"); Serial.print(staticIP); Serial.println(">.");
 #endif
 
   WiFi.begin(ssid, password);
@@ -319,11 +319,7 @@ void connectToWiFi()
     printWiFiStatus(); 
   }
 
-  Serial.print(">> Connected to <");
-  Serial.print(ssid);
-  Serial.print("> with address <");
-  Serial.print(WiFi.localIP());
-  Serial.println(">.");
+  Serial.print(">> Connected to <"); Serial.print(ssid); Serial.print("> with address <"); Serial.print(WiFi.localIP()); Serial.println(">.");
 
   pixels.setPixelColor(0, pixels.Color(0, 0, 0));
   pixels.show();
@@ -342,9 +338,7 @@ bool performPing()
 
   IPAddress currentTarget = dnsList[currentIPIndex];
 
-  Serial.print(">> Pinging ");
-  Serial.print(currentTarget);
-  Serial.print(" ... ");
+  Serial.print(">> Pinging "); Serial.print(currentTarget); Serial.print(" ... ");
 
   if (Ping.ping(currentTarget, 1)) 
   {
@@ -439,16 +433,12 @@ void loop()
     // Record the exact moment we triggered a reboot
     lastRebootTime = millis();
 
-    Serial.print("   Waiting ");
-    Serial.print(POWER_CYCLE_TIME);
-    Serial.println("s before reconnecting power ...");
+    Serial.print("   Waiting "); Serial.print(POWER_CYCLE_TIME); Serial.println("s before reconnecting power ...");
     int COUNT_DOWN_STEP = 5;
     for (int seconds = POWER_CYCLE_TIME; seconds > 0; seconds-=COUNT_DOWN_STEP) 
     {
       handleHttpClients();   // keep web page alive during countdown
-      Serial.print("   ");
-      Serial.print(seconds);
-      Serial.println("s");
+      Serial.print("   "); Serial.print(seconds); Serial.println("s");
       for (int i = 0; i < COUNT_DOWN_STEP; i++)
       {
         pixels.setPixelColor(0, pixels.Color(255, 0, 0));
@@ -466,9 +456,7 @@ void loop()
     for (int minutes = RECOVERY_DELAY; minutes > 0; minutes--) 
     {
       handleHttpClients();   // keep web page alive during recovery
-      Serial.print("   Waiting ");
-      Serial.print(minutes);
-      Serial.println("min");
+      Serial.print("   Waiting ");  Serial.print(minutes);  Serial.println("min");
 
       for (int i = 0; i < 60; i++) 
       {
