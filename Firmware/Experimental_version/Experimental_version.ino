@@ -48,7 +48,7 @@
 /***********************************************************************************/
 
 /* Uncomment for debug/testing ***********************/
-#define DEBUG_MODE   /* testing settings or normal */
+//#define DEBUG_MODE   /* testing settings or normal */
 /*****************************************************/
 
 /* Static IP address **************************************************/
@@ -81,7 +81,10 @@ const char* password = "Today123!";         /* Your WiFi password here */
 #endif
 
 #ifdef DEBUG_MODE
-  /* Round-robin DNS list (DEBUG mode – includes dummy IPs to force failures) */
+  /*****************************************************/
+  /* Round-robin DNS list ******************************/
+  /* DEBUG mode – includes dummy IPs to force failures */
+  /*****************************************************/
   const IPAddress dnsList[] = 
   {
     IPAddress(1, 1, 1, 1),      /* Cloudflare primary    */
@@ -110,7 +113,9 @@ const char* password = "Today123!";         /* Your WiFi password here */
   const int RECOVERY_DELAY   = 120;    /* delay after powering back on (s) */
   /*************************************************************************/
 #else
-  /* Round-robin DNS list (normal production mode) *********/
+  /*****************************************************/
+  /* Round-robin DNS list ******************************/
+  /*****************************************************/
   const IPAddress dnsList[] = 
   {
     IPAddress(1, 1, 1, 1),         /* Cloudflare primary   */
@@ -125,7 +130,7 @@ const char* password = "Today123!";         /* Your WiFi password here */
     IPAddress(208, 67, 222, 222),  /* OpenDNS primary      */
     IPAddress(208, 67, 220, 220)   /* OpenDNS secondary    */
   };
-  /* Target ames for each IP target (matches the list above) */
+  /* Target names for each IP target (matches the list above) */
   const char* dnsName[] = 
   {
     "Cloudflare primary",   /* 1.1.1.1                       */
@@ -456,8 +461,10 @@ bool performPing()
 /****************/
 void setNormalState() 
 {
-  digitalWrite(OK_LED_PIN,      HIGH); /* OK LED is on       */
-  digitalWrite(FAILURE_LED_PIN, LOW);  /* FAILURE LED is off */
+  digitalWrite(OK_LED_PIN,      HIGH);            /* OK LED is on       */
+  digitalWrite(FAILURE_LED_PIN, LOW);             /* FAILURE LED is off */
+  pixels.setPixelColor(0, pixels.Color(0, 0, 0)); /* ESP23 LED is off   */
+  pixels.show();
 }
 
 /*********************/
@@ -676,9 +683,15 @@ void loop()
       Serial.print("   ");  Serial.print(seconds);  Serial.println("s");
       for (int i = 0; i < (COUNT_DOWN_STEP*3); i++) 
       {
-        digitalWrite(OK_LED_PIN, HIGH);
+        digitalWrite(OK_LED_PIN, HIGH);                   /* OK on       */
+        digitalWrite(FAILURE_LED_PIN, LOW);               /* FAILURE off */
+        pixels.setPixelColor(0, pixels.Color(255, 0, 0)); /* green       */
+        pixels.show();
         delay(500);
-        digitalWrite(OK_LED_PIN, LOW);
+        digitalWrite(OK_LED_PIN, LOW);                    /* OK off     */
+        digitalWrite(FAILURE_LED_PIN, HIGH);              /* FAILURE on */
+        pixels.setPixelColor(0, pixels.Color(0, 255, 0)); /* red        */
+        pixels.show();
         delay(500);
       }
     }
