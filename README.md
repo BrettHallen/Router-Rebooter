@@ -106,7 +106,11 @@ Use the Arduino IDE to compile & transfer to the ESP32.<br>
 - [Tested version](/Router-Rebooter)
 - [Experimental version](/Experimental_version)
 
-Experimental version: added static IP address and HTTP status/statistics page
+Experimental version - seems to be working fine, testing ongoing:<br>
+- added static IP address and HTTP status/statistics page
+- added NTP timestamps, used for last ping failures & last router reboot (if ever)
+- cleaned up the code, added lots of comments to hopefully explain the logic
+- added F() macro usage to save a little bit of RAM/heap
 
 ![Status page](/Images/Router_Rebooter_status_page.png)
 
