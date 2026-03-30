@@ -138,7 +138,7 @@ There's currently two versions:
 ### Parts
 - OMRON GL5E-1-VD relay (or similar)
 - ESP32-C3-Zero development board (Waveshare)
-- 10µF capacitor for the ESP32 power
+- 10µF capacitor for the ESP32 power - could probably be left off (short pins)
 - One 7805-type 5V regulator (i.e. [EzSBC's PSU2-5](https://ezsbc.shop/products/psu2-5-5v-1amp-three-pin-regulator)) to power the ESP. I am using a switching regulator so don't have any provision for heatsinking a linear regulator.
 - Two 2.1mm DC power sockets to pass through the 12VDC
 - Some other bits (2N2222 transistor, 1KΩ resistor, 1N4148 diode) to connect the relay coil to the ESP32
