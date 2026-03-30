@@ -52,7 +52,7 @@ const char* password = "Today123!";         /* Your WiFi password here */
 /* /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ */
 
 #ifdef STATIC_IP
-  const IPAddress staticIP(192, 168, 128, 129);   /* your static IP address */
+  const IPAddress staticIP(192, 168, 128, 128);   /* your static IP address */
   const IPAddress gateway(192, 168, 1, 1);        /* your router/gateway IP address */
   const IPAddress subnet(255, 255, 0, 0);         /* your netmask */
   const IPAddress dns(1, 1, 1, 1);                /* DNS IP address */
@@ -128,11 +128,12 @@ const int NUM_DNS = sizeof(dnsList) / sizeof(dnsList[0]);
 int currentIPIndex = 0;     // round-robin index
 
 /* Ping statistics for each DNS address */
-uint32_t okCount[NUM_DNS]   = {0};
-uint32_t failCount[NUM_DNS] = {0};
-uint32_t lastRebootTime     = 0;   // millis() when last router reboot occurred
-time_t   lastRebootNTP      = 0;   // NTP timestamp of last router reboot (0 = never)
-uint32_t esp32UpTime        = 0;   // millis() since last ESP32 restart
+uint32_t okCount[NUM_DNS]        = {0};
+uint32_t failCount[NUM_DNS]      = {0};
+time_t   lastFailedPing[NUM_DNS] = {0};
+uint32_t lastRebootTime          = 0;   // millis() when last router reboot occurred
+time_t   lastRebootNTP           = 0;   // NTP timestamp of last router reboot (0 = never)
+uint32_t esp32UpTime             = 0;   // millis() since last ESP32 restart
 
 /* GPIO pins */
 const int RELAY_PIN        = 5;   // GPIO5, active HIGH via 2N2222
@@ -303,7 +304,7 @@ void serveHttpPage(WiFiClient &client)
   /* how long we keep the router off before powering back on */
   client.print("<tr><th>Power cycle timer</th><td>"); client.print(POWER_CYCLE_TIME); client.println("sec</td></tr>");
   /* how long we wait after powering the router back on before we resume our monitoring */
-  client.print("<tr><th>Recovery delays</th><td>"); client.print(RECOVERY_DELAY); client.println("min</td></tr>");
+  client.print("<tr><th>Recovery delay</th><td>"); client.print(RECOVERY_DELAY); client.println("min</td></tr>");
   client.println("</table></p>");
 
   /* our OK/FAILED ping stats for each target address */
@@ -320,6 +321,7 @@ void serveHttpPage(WiFiClient &client)
     client.print(okCount[i]);
     client.print("</td><td>");
     client.print(failCount[i]);
+    if (lastFailedPing[i] > 0) {client.print(" ("); client.print(formatNTPTime(lastFailedPing[i])); client.print(")");} 
     client.println("</td></tr>");
   }
   client.println("</table></body></html>");
@@ -456,6 +458,7 @@ bool performPing()
   {
     Serial.println("failed!");
     failCount[currentIPIndex]++;
+    lastFailedPing[currentIPIndex] = time(NULL);
     currentIPIndex = (currentIPIndex + 1) % NUM_DNS;
     pixels.setPixelColor(0, pixels.Color(0, 255, 0));
     pixels.show();
