@@ -5,7 +5,7 @@
  *               27/Mar/2026, round-robin pinging                    *
  *               28/Mar/2026, ESP32 LED                              * 
  *               29/Mar/2026, Static IP, HTTP stats/status page      *
- *               30/Mar/2026, added DNS names                        *
+ *               30/Mar/2026, added DNS names, NTP time keeping      *
  *                                                                   *
  * HARDWARE MAPPING:                                                 *
  *   Relay control: GPIO 5 (pin 9) via 2N2222 transistor             *
@@ -23,20 +23,9 @@
  *   Recovery:    OK LED flashes every second                        *
  *********************************************************************/
 
-/*
- Improvement Ideas:
- [1] Round robin or random selection of DNS address from a list - DONE!
- [2] Use the ESP32-C3 dev board's inbuilt LED                   - DONE!
- [3] Send message after router has been rebooted 
-     (via CallMeBot to WhatsApp?)
- [4] Reduce ESP32 power usage by only connecting to WiFi for    
-     ping test, then disconnecting?                             - NO
- [5] Status/statistics via HTTP page                            - DONE!
-*/
-
-/* Uncomment for debug/testing \/\/\/\/\/\/\/\/\/\/\ */
+/* Uncomment for debug/testing \/\/\/\/\/\/\/\/\/\ */
 //#define DEBUG_MODE   /* testing settings or normal */
-/* /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ */
+/* /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ */
 
 /* Static IP address \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ */
 #define STATIC_IP    /* assign yourself an IP address for easy access */
@@ -46,8 +35,16 @@
 #define RELAY_DEENERGISE LOW      // De-energise coil = restore power (NC contact)
 
 #include <WiFi.h>
-#include <ESPping.h>
+#include <ESPping.h>             // Required for pings
 #include <Adafruit_NeoPixel.h>   // Required for the WS2812 RGB LED on the Waveshare ESP32-C3-Zero
+#include <time.h>                // Required for NTP real-time clock support
+
+const char* versionDate = "30/Mar/2026";
+
+/* NTP configuration (Port Macquarie/Australia AEDT) */
+const char* ntpServer = "pool.ntp.org";
+const long  gmtOffset_sec = 36000;     /* GMT+10 hours (AEDT) */
+const int   daylightOffset_sec = 0;
 
 /* Modify WiFi configuration \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\ */
 const char* ssid     = "RouterRebootTest";  /* Your WiFi AP here       */
@@ -55,10 +52,10 @@ const char* password = "Today123!";         /* Your WiFi password here */
 /* /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/ */
 
 #ifdef STATIC_IP
-const IPAddress staticIP(192, 168, 128, 129);   /* your static IP address */
-const IPAddress gateway(192, 168, 1, 1);        /* your router/gateway IP address */
-const IPAddress subnet(255, 255, 0, 0);         /* your netmask */
-const IPAddress dns(1, 1, 1, 1);                /* DNS IP address */
+  const IPAddress staticIP(192, 168, 128, 129);   /* your static IP address */
+  const IPAddress gateway(192, 168, 1, 1);        /* your router/gateway IP address */
+  const IPAddress subnet(255, 255, 0, 0);         /* your netmask */
+  const IPAddress dns(1, 1, 1, 1);                /* DNS IP address */
 #endif
 
 #ifdef DEBUG_MODE
@@ -73,7 +70,7 @@ const IPAddress dns(1, 1, 1, 1);                /* DNS IP address */
     IPAddress(192,168,123,123), // dummy to test failure
     IPAddress(192,168,123,123)  // dummy to test failure
   };
-  const *char dnsName[] =
+  const char* dnsName[] =
   {
     "Cloudflare primary",
     "Dummy test failure",
@@ -134,6 +131,7 @@ int currentIPIndex = 0;     // round-robin index
 uint32_t okCount[NUM_DNS]   = {0};
 uint32_t failCount[NUM_DNS] = {0};
 uint32_t lastRebootTime     = 0;   // millis() when last router reboot occurred
+time_t   lastRebootNTP      = 0;   // NTP timestamp of last router reboot (0 = never)
 uint32_t esp32UpTime        = 0;   // millis() since last ESP32 restart
 
 /* GPIO pins */
@@ -142,13 +140,16 @@ const int OK_LED_PIN       = 0;   // GPIO0
 const int FAILURE_LED_PIN  = 1;   // GPIO1
 const int BUILTIN_LED_PIN  = 10;  // WS2812 RGB LED on GPIO10 (Waveshare ESP32-C3-Zero)
 
+/* avoid kernel panic after router reboot if HTTP status page is active */
+bool rebootInProgress = false;
+
 /* NeoPixel object for the built-in RGB LED */
 Adafruit_NeoPixel pixels(1, BUILTIN_LED_PIN, NEO_GRB + NEO_KHZ800);
 
-/* HTTP server on port 80 */
+/* HTTP server on port 80 for status/statistics */
 WiFiServer httpServer(80);
 
-/* Helper to print a human-readable WiFi status message */
+/* Print a human-readable WiFi status message */
 void printWiFiStatus()
 {
   int status = WiFi.status();
@@ -190,7 +191,7 @@ void printWiFiStatus()
   }
 }
 
-/* Helper to format time since last reboot */
+/* Format time since last reboot */
 String timeAgo(uint32_t lastTime)
 {
   if (lastTime == 0) return "Never";
@@ -202,16 +203,52 @@ String timeAgo(uint32_t lastTime)
   uint32_t minutes = seconds / 60;     seconds %= 60;
 
   String s = "";
-  if (days)    { s += String(days)    + "d "; }
-  if (hours)   { s += String(hours)   + "h "; }
-  if (minutes) { s += String(minutes) + "m "; }
+  if (days)    {s += String(days)   +"d ";}
+  if (hours)   {s += String(hours)  +"h ";}
+  if (minutes) {s += String(minutes)+"m ";}
   s += String(seconds) + "s ago";
   return s;
+}
+
+/* Format NTP timestamp as human-readable date/time */
+String formatNTPTime(time_t t)
+{
+  if (t == 0) return "Never";
+  struct tm *tm = localtime(&t);
+  char buf[32];
+  /* DD/Mmm/YYYY HH:MM:SS */
+  strftime(buf, sizeof(buf), "%d/%b/%Y %H:%M:%S", tm);
+  return String(buf);
+}
+
+/* Sync NTP time (called on connect + once per day at 05:00) */
+void syncNTPTime()
+{
+  Serial.print(">> Syncing NTP time (pool.ntp.org) ... ");
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  // Give it a few seconds to get a valid time
+  for (int i = 0; i < 25; i++) 
+  {
+    time_t now = time(NULL);
+    if (now > 1000000000UL) 
+    {   // valid Unix epoch
+      Serial.println(formatNTPTime(now));
+      return;
+    }
+    delay(200);
+    handleHttpClients();
+  }
+  Serial.println("failed, no valid time yet");
 }
 
 /* Serve the HTTP status page */
 void serveHttpPage(WiFiClient &client)
 {
+  if (rebootInProgress)
+  {
+    Serial.println("!! [serveHttpPage] Reboot in progress, ignore HTTP requests.");
+    return;
+  }
   Serial.print(">> Sending status page to <"); Serial.print(client.remoteIP()); Serial.println(">");
 
   client.println("HTTP/1.1 200 OK");
@@ -229,24 +266,47 @@ void serveHttpPage(WiFiClient &client)
   client.println("<style>table{border-collapse:collapse;width:100%;}th,td{border:1px solid #ccc;padding:8px;text-align:left;}</style>");
   client.println("</head><body>");
 
-  client.print("<h1><u>Brett's Router Rebooter (29/Mar/2026)</u></h1>");
+  client.print("<h1><u>Brett's Router Rebooter ("); client.print(versionDate); client.print(")</u>");
+#ifdef DEBUG_MODE
+  client.println(" *DEBUG MODE*");
+#endif
+  client.println("</h1>");
   client.print("(This page will refresh every ");
   client.print((PING_TIMER / 1000) + 3 );
   client.println("s)");
   
   client.print("<h2>Connection</h2>");
-  client.println("<table><tr><th>WiFi AP name</th><th>IP address</th><th>Last router reboot</th><th>Last ESP32 reboot</th></tr>");
-  client.print("<tr><td>");
-  client.print(ssid);
-  client.print("</td><td>");
-  client.print(WiFi.localIP());
-  client.print("</td><td>");
-  client.print(timeAgo(lastRebootTime));
-  client.print("</td><td>");
-  client.print(timeAgo(esp32UpTime));
-  client.print("</td></tr>");
-  client.print("</table></p>");
+  client.println("<table>");
+  /* SSID of configured WiFi access point */
+  client.print("<tr><th>WiFi AP name</th><td>"); client.print(ssid); client.println("</td></tr>");
+  /* our IP address */
+  client.print("<tr><th>IP address</th><td>"); client.print(WiFi.localIP()); client.println("</td></tr>");
+  /* the current time */
+  client.print("<tr><th>Current time (NTP)</th><td>"); client.print(formatNTPTime(time(NULL))); client.println("</td></tr>");
+  /* when we last rebooted the router (time ago & time stamp) */
+  client.print("<tr><th>Last router reboot</th><td>");   client.print(timeAgo(lastRebootTime)); 
+  if (lastRebootNTP > 0) {client.print(" ("); client.print(formatNTPTime(lastRebootNTP)); client.print(")");} 
+  client.println("</td></tr>");
+  /* when the ESP32 was last reset/rebooted */
+  client.print("<tr><th>Last ESP32 reboot</th><td>"); client.print(timeAgo(esp32UpTime)); client.println("</td></tr>");
+  client.println("</table></p>");
 
+  /* Our current monitoring configuration */
+  client.print("<h2>Timers</h2>");
+  client.println("<table>");
+  /* time between pings */
+  client.print("<tr><th>Ping timer</th><td>"); client.print(PING_TIMER/1000); client.println("sec</td></tr>");
+  /* how many ping retries before we take action */
+  client.print("<tr><th>Ping retries</th><td>"); client.print(PING_RETRIES); client.println("</td></tr>");
+  /* time between ping retries */
+  client.print("<tr><th>Ping retry timer</th><td>"); client.print(PING_RETRY_TIMER/1000); client.println("sec</td></tr>");
+  /* how long we keep the router off before powering back on */
+  client.print("<tr><th>Power cycle timer</th><td>"); client.print(POWER_CYCLE_TIME); client.println("sec</td></tr>");
+  /* how long we wait after powering the router back on before we resume our monitoring */
+  client.print("<tr><th>Recovery delays</th><td>"); client.print(RECOVERY_DELAY); client.println("min</td></tr>");
+  client.println("</table></p>");
+
+  /* our OK/FAILED ping stats for each target address */
   client.println("<h2>Rechability statistics</h2>");
   client.println("<table><tr><th>Target address</th><th>Target name</th><th>OK pings</th><th>Failed pings</th></tr>");
 
@@ -270,6 +330,13 @@ void serveHttpPage(WiFiClient &client)
 /* Check for browser requests without blocking */
 void handleHttpClients()
 {
+  /* avoid kernel panic after router reboot if HTTP status page is active */
+  if (rebootInProgress) 
+  {
+    Serial.println("!! [handleHttpClients] Reboot in progress, ignoring HTTP requests.");
+    return;
+  }
+
   WiFiClient client = httpServer.available();
   if (client) 
   {
@@ -286,16 +353,19 @@ void waitWithHttpCheck(long ms)
   while (millis() - start < (unsigned long)ms)
   {
     handleHttpClients();
-    delay(200);   // check every 200 ms
+    /* check every 200ms */
+    delay(200);
   }
 }
-
+/**************************
+********** SETUP ********** 
+***************************/
 void setup() 
 {
   Serial.begin(115200);
   delay(1000);
   Serial.println("\n\n>> Brett's Router Rebooter Starting!");
-  Serial.println("   (29/Mar/2026)");
+  Serial.print("   ("); Serial.print(versionDate); Serial.println(")");
 
   esp32UpTime = millis();
 
@@ -314,7 +384,7 @@ void setup()
   pinMode(OK_LED_PIN,       OUTPUT);
   pinMode(FAILURE_LED_PIN,  OUTPUT);
 
-  // Safe boot state
+  /* Safe boot state */
   digitalWrite(RELAY_PIN,       RELAY_DEENERGISE);
   digitalWrite(OK_LED_PIN,      HIGH);
   digitalWrite(FAILURE_LED_PIN, LOW);
@@ -358,6 +428,9 @@ void connectToWiFi()
   Serial.println(">> HTTP status page started on port 80");
   Serial.print("   Open in browser: http://");
   Serial.println(WiFi.localIP());
+
+  /* initial NTP sync after WiFi is up */
+  syncNTPTime();
 }
 
 /* Ping the well-known IP address to verify we can talk to the Internet */
@@ -373,7 +446,7 @@ bool performPing()
   if (Ping.ping(currentTarget, 1)) 
   {
     Serial.println("OK!");
-    okCount[currentIPIndex]++;                     // statistics
+    okCount[currentIPIndex]++;
     currentIPIndex = (currentIPIndex + 1) % NUM_DNS;
     pixels.setPixelColor(0, pixels.Color(0, 0, 0));
     pixels.show();
@@ -382,7 +455,7 @@ bool performPing()
   else 
   {
     Serial.println("failed!");
-    failCount[currentIPIndex]++;                   // statistics
+    failCount[currentIPIndex]++;
     currentIPIndex = (currentIPIndex + 1) % NUM_DNS;
     pixels.setPixelColor(0, pixels.Color(0, 255, 0));
     pixels.show();
@@ -402,9 +475,13 @@ void setFailureState()
   digitalWrite(FAILURE_LED_PIN, HIGH);
 }
 
+/******************************
+********** MAIN LOOP **********
+*******************************/
 void loop() 
 {
-  handleHttpClients();   // check for browser requests at the start of every loop
+  /* check for browser requests at the start of every loop */
+  handleHttpClients(); 
 
   /* Handle any incoming HTTP port 80 requests */
   WiFiClient client = httpServer.available();
@@ -414,11 +491,27 @@ void loop()
     client.stop();
   }
 
-  connectToWiFi();   // Reconnect after every power-cycle
-
+  /* Reconnect after every power-cycle */
+  connectToWiFi();
+  /* allow HTTP GET requests again (kernel panic otherwise) */
+  rebootInProgress = false;
   while (true) 
   {
-    handleHttpClients();   // keep the web page responsive inside the monitoring loop
+    /* keep the web page responsive inside the monitoring loop */
+    handleHttpClients(); 
+
+    /* Daily NTP re-sync at 05:00 local time */
+    struct tm timeinfo;
+    if (getLocalTime(&timeinfo)) 
+    {
+      static bool syncedToday = false;
+      if (timeinfo.tm_hour == 5 && timeinfo.tm_min == 0 && !syncedToday) 
+      {
+        syncNTPTime();
+        syncedToday = true;
+      }
+      if (timeinfo.tm_hour != 5) syncedToday = false;
+    }
 
     if (WiFi.status() != WL_CONNECTED) 
     {
@@ -430,7 +523,8 @@ void loop()
     if (performPing()) 
     {
       setNormalState();
-      waitWithHttpCheck(PING_TIMER);   // non-blocking wait instead of delay
+      /* non-blocking so HTTP requests are handled quickly */
+      waitWithHttpCheck(PING_TIMER);
       continue;
     }
 
@@ -439,7 +533,8 @@ void loop()
     bool recovered = false;
     for (int i = 0; i < PING_RETRIES; i++) 
     {
-      waitWithHttpCheck(PING_RETRY_TIMER);   // non-blocking wait
+      /* non-blocking so HTTP requests are handled quickly */
+      waitWithHttpCheck(PING_RETRY_TIMER);
       if (performPing()) 
       {
         recovered = true;
@@ -450,24 +545,28 @@ void loop()
     if (recovered) 
     {
       setNormalState();
-      waitWithHttpCheck(PING_TIMER);   // non-blocking wait
+      /* non-blocking so HTTP requests are handled quickly */
+      waitWithHttpCheck(PING_TIMER); 
       continue;
     }
 
-    // Still dead after retries → power cycle
+    /* Still dead after retries, power cycle */
+    rebootInProgress = true; /* needed to avoid kernel panic after router power cycling & WiFi disconnect/reconnect */
     Serial.println("!! No response after retries, disconnecting router power.");
     digitalWrite(RELAY_PIN, RELAY_ENERGISE);
     pixels.setPixelColor(0, pixels.Color(0, 0, 0));
     pixels.show();
 
-    // Record the exact moment we triggered a reboot
+    /* Record both millis and  NTP timestamp */
     lastRebootTime = millis();
+    lastRebootNTP  = time(NULL);
 
     Serial.print("   Waiting "); Serial.print(POWER_CYCLE_TIME); Serial.println("s before reconnecting power ...");
     int COUNT_DOWN_STEP = 5;
     for (int seconds = POWER_CYCLE_TIME; seconds > 0; seconds-=COUNT_DOWN_STEP) 
     {
-      handleHttpClients();   // keep web page alive during countdown
+      /* keep web page alive during countdown */
+      //handleHttpClients(); 
       Serial.print("   "); Serial.print(seconds); Serial.println("s");
       for (int i = 0; i < COUNT_DOWN_STEP; i++)
       {
@@ -485,7 +584,7 @@ void loop()
     Serial.println(">> Starting recovery wait ...");
     for (int minutes = RECOVERY_DELAY; minutes > 0; minutes--) 
     {
-      handleHttpClients();   // keep web page alive during recovery
+      //handleHttpClients();
       Serial.print("   Waiting ");  Serial.print(minutes);  Serial.println("min");
 
       for (int i = 0; i < 60; i++) 
@@ -502,7 +601,7 @@ void loop()
     Serial.println();
 
     setNormalState();
-
+    
     WiFi.disconnect(true);
     delay(2000);
     break;
