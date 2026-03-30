@@ -5,6 +5,7 @@
  *               27/Mar/2026, round-robin pinging                    *
  *               28/Mar/2026, ESP32 LED                              * 
  *               29/Mar/2026, Static IP, HTTP stats/status page      *
+ *               30/Mar/2026, added DNS names                        *
  *                                                                   *
  * HARDWARE MAPPING:                                                 *
  *   Relay control: GPIO 5 (pin 9) via 2N2222 transistor             *
@@ -72,6 +73,16 @@ const IPAddress dns(1, 1, 1, 1);                /* DNS IP address */
     IPAddress(192,168,123,123), // dummy to test failure
     IPAddress(192,168,123,123)  // dummy to test failure
   };
+  const *char dnsName[] =
+  {
+    "Cloudflare primary",
+    "Dummy test failure",
+    "Cloudflare secondary",
+    "Dummy test failure",
+    "Dummy test failure",
+    "Dummy test failure",
+    "Dummy test failure"
+  };
   /* Timers for testing */
   const int PING_TIMER       = 10000; // delay between normal pings (ms)
   const int PING_RETRIES     = 3;     // retry ping before failing
@@ -93,6 +104,21 @@ const IPAddress dns(1, 1, 1, 1);                /* DNS IP address */
     IPAddress(4, 2, 2, 3),         // Level 3 tertiary
     IPAddress(208, 67, 222, 222),  // OpenDNS primary
     IPAddress(208, 67, 220, 220)   // OpenDNS secondary
+  };
+  // Friendly names for each DNS target (matches the list above)
+  const char* dnsName[] = 
+  {
+    "Cloudflare primary",
+    "Cloudflare secondary",
+    "Google primary",
+    "Google secondary",
+    "Quad9 primary",
+    "Quad9 secondary",
+    "Level 3 primary",
+    "Level 3 secondary",
+    "Level 3 tertiary",
+    "OpenDNS primary",
+    "OpenDNS secondary"
   };
   /* Timers */
   const int PING_TIMER       = 30000; // delay between normal pings (ms)
@@ -204,6 +230,9 @@ void serveHttpPage(WiFiClient &client)
   client.println("</head><body>");
 
   client.print("<h1><u>Brett's Router Rebooter (29/Mar/2026)</u></h1>");
+  client.print("(This page will refresh every ");
+  client.print((PING_TIMER / 1000) + 3 );
+  client.println("s)");
   
   client.print("<h2>Connection</h2>");
   client.println("<table><tr><th>WiFi AP name</th><th>IP address</th><th>Last router reboot</th><th>Last ESP32 reboot</th></tr>");
@@ -219,12 +248,14 @@ void serveHttpPage(WiFiClient &client)
   client.print("</table></p>");
 
   client.println("<h2>Rechability statistics</h2>");
-  client.println("<table><tr><th>Target address</th><th>OK pings</th><th>Failed pings</th></tr>");
+  client.println("<table><tr><th>Target address</th><th>Target name</th><th>OK pings</th><th>Failed pings</th></tr>");
 
   for (int i = 0; i < NUM_DNS; i++)
   {
     client.print("<tr><td>");
     client.print(dnsList[i]);
+    client.print("</td><td>");
+    client.print(dnsName[i]);
     client.print("</td><td>");
     client.print(okCount[i]);
     client.print("</td><td>");
@@ -337,12 +368,12 @@ bool performPing()
 
   IPAddress currentTarget = dnsList[currentIPIndex];
 
-  Serial.print(">> Pinging "); Serial.print(currentTarget); Serial.print(" ... ");
+  Serial.print(">> Pinging "); Serial.print(currentTarget); Serial.print(" ("); Serial.print(dnsName[currentIPIndex]); Serial.print(") ... ");
 
   if (Ping.ping(currentTarget, 1)) 
   {
     Serial.println("OK!");
-    okCount[currentIPIndex]++;                     // ← statistics
+    okCount[currentIPIndex]++;                     // statistics
     currentIPIndex = (currentIPIndex + 1) % NUM_DNS;
     pixels.setPixelColor(0, pixels.Color(0, 0, 0));
     pixels.show();
@@ -351,7 +382,7 @@ bool performPing()
   else 
   {
     Serial.println("failed!");
-    failCount[currentIPIndex]++;                   // ← statistics
+    failCount[currentIPIndex]++;                   // statistics
     currentIPIndex = (currentIPIndex + 1) % NUM_DNS;
     pixels.setPixelColor(0, pixels.Color(0, 255, 0));
     pixels.show();
