@@ -8,6 +8,7 @@
 /*               30/Mar/2026: added DNS names, NTP time keeping      */
 /*               31/Mar/2026: code cleanup & commenting              */
 /*                            added F() macro to reduce RAM/heap use */
+/*                1/Apr/2026: added Github link to status page       */
 /*                                                                   */
 /* HARDWARE MAPPING:                                                 */
 /*   Relay control: GPIO 5 (pin 9) via 2N2222 transistor             */
@@ -59,8 +60,9 @@
 #define RELAY_DEENERGISE LOW   /* De-energise coil = restore power (NC contact)    */
 #define NTP_GMT_OFFSET   10    /* GMT+10 (AEST)                                    */
 
-const char* versionDate = "31/Mar/2026"; /* Version date for the firmware  */
+const char* versionDate = "1/Apr/2026"; /* Version date for the firmware  */
 const char* myRouter = "NF18ACV";        /* Customise to help identify me! */
+const char* githubRepo = "https://github.com/BrettHallen/Router-Rebooter";  /* My Github */
 
 /* NTP configuration ******************************************/
 const char* ntpServer = "pool.ntp.org"; /* NTP server         */                        
@@ -322,6 +324,12 @@ void serveHttpPage(WiFiClient &client)
   client.print((PING_TIMER / 1000) + 3 );
   client.println(F("s)"));
   
+  client.println(F("<p><strong>Github:</strong> <a href=\""));
+  client.print(githubRepo);
+  client.print(F("\" target=\"_blank\">"));
+  client.print(githubRepo);
+  client.println(F("</a></p>"));
+
   /* table listing our connection info */
   client.print(F("<h2>Connection</h2>"));
   client.println(F("<table>"));
