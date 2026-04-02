@@ -107,16 +107,14 @@ Use the Arduino IDE to compile & transfer to the ESP32.<br>
 - [Experimental version](/Experimental_version)
 
 Experimental version - seems to be working fine, testing ongoing:<br>
-- added static IP address and HTTP status/statistics page
-- added NTP timestamps, used for last ping failures & last router reboot (if ever)
-- cleaned up the code, added lots of comments to hopefully explain the logic
-- added F() macro usage to save a little bit of RAM/heap
+- added TZ/DST handling, including automatic DST change according to local rule
 
 ![Status page](/Images/Router_Rebooter_status_page.png)
 
 ### Required Libraries
 - [ESPping](https://github.com/dvarrel/ESPping)
 - [Adafruit NeoPixel](https://github.com/adafruit/adafruit_neopixel)
+- [Timezone](https://github.com/JChristensen/Timezone)
 
 ### Possible Improvements
 - Send a message after the router has been rebooted (via CallMeBot to WhatsApp?)
