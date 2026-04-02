@@ -31,11 +31,13 @@
 /*                blue/green when connecting to WiFi                 */
 /*********************************************************************/
 
+/* Required Arduino libraries **********************************************************************/
 #include <WiFi.h>
 #include <ESPping.h>             /* Required for pings                                             */
 #include <Adafruit_NeoPixel.h>   /* Required for the WS2812 RGB LED on the Waveshare ESP32-C3-Zero */
 #include <time.h>                /* Required for NTP real-time clock support                       */
 #include <Timezone.h>            /* Required for TZ and DST support                                */
+/***************************************************************************************************/
 
 /* CUSTOMISATIONS ******************************************************************/
 /* DEBUG_MODE ........... Shorter timers & dodgy addresses to test the monitioring */
@@ -58,40 +60,41 @@
 #define STATIC_IP    /* Assign yourself an IP address for easy access */
 /**********************************************************************/
 
-#define RELAY_ENERGISE   HIGH  /* Energise coil = cut power to router (NO contact) */
-#define RELAY_DEENERGISE LOW   /* De-energise coil = restore power (NC contact)    */
-
-const char* versionDate = "2/Apr/2026";                 /* Version date for the firmware  */
+/* Status page settings *******************************************************************/
+const char* versionDate = "2/Apr/2026";                 /* Version date of this firmware  */
 const char* myRouter = "NF18ACV";                       /* Customise to help identify me! */
-const char* githubRepo = "https://github.com/BrettHallen/Router-Rebooter";   /* My Github */
 const char* myRouterAdminPage = "http://192.168.1.1"; /* Admin/login page for your router */
 //const char* myRouterAdminPage = "";              /* No admin/login page for your router */
+const char* githubRepo = "https://github.com/BrettHallen/Router-Rebooter";   /* My Github */
+/******************************************************************************************/
 
-/* NTP & TZ configuration *****************************************************************************/
-const char* ntpServer = "pool.ntp.org";                                                 /* NTP server */
-/* TZ/DST setting for NSW, Australia ******************************************************************/
-TimeChangeRule myDST = {"AEDT", First, Sun, Oct, 2, 660}; /* GMT+11 hours from 02:00 first Sunday Oct */
-TimeChangeRule mySTD = {"AEST", First, Sun, Apr, 3, 600}; /* GMT+10 hours from 03:00 first Sunday Apr */
-/* Example: TZ setting for non-DST location, i.e. QLD, Australia **************************************/
-// TimeChangeRule myDST = {"AEST", First, Sun, Jan, 0, 600};                 /* Always GMT+10         */
-// TimeChangeRule mySTD = {"AEST", First, Sun, Jan, 0, 600};                 /* Always GMT+10         */
-/******************************************************************************************************/
-Timezone myTZ(myDST, mySTD);                                            /* Create the timezone object */
-/******************************************************************************************************/
+/* Static IP configuration **********************************************************/
+#ifdef STATIC_IP 
+  const IPAddress staticIP(192, 168, 128, 128);   /* Your static IP address         */
+//const IPAddress staticIP(192, 168, 128, 129);   /* For testing 2nd rebooter       */
+  const IPAddress gateway(192, 168, 1, 1);        /* Your router/gateway IP address */
+  const IPAddress subnet(255, 255, 0, 0);         /* Your netmask                   */
+  const IPAddress dns(1, 1, 1, 1);                /* DNS IP address                 */
+#endif
+/************************************************************************************/
 
 /* WiFi configuration **************************************************/
 const char* ssid     = "RouterRebootTest";      /* Your WiFi SSID here */
 const char* password = "Today123!";         /* Your WiFi password here */
 /***********************************************************************/
 
-/* Static IP configuration **********************************************************/
-#ifdef STATIC_IP 
-  const IPAddress staticIP(192, 168, 128, 128);   /* Your static IP address         */
-  const IPAddress gateway(192, 168, 1, 1);        /* Your router/gateway IP address */
-  const IPAddress subnet(255, 255, 0, 0);         /* Your netmask                   */
-  const IPAddress dns(1, 1, 1, 1);                /* DNS IP address                 */
-#endif
-/************************************************************************************/
+/* NTP & TZ configuration *********************************************************************************/
+const char* ntpServer = "pool.ntp.org";                      /* NTP server                                */
+/* TZ/DST setting for NSW, Australia **********************************************************************/
+TimeChangeRule myDST = {"AEDT", First, Sun, Oct, 2, 660};    /* GMT+11 hours from 02:00 first Sunday Oct  */
+TimeChangeRule mySTD = {"AEST", First, Sun, Apr, 3, 600};    /* GMT+10 hours from 03:00 first Sunday Apr  */
+/* Example: TZ setting for non-DST location, i.e. QLD, Australia ******************************************/
+// TimeChangeRule myDST = {"AEST", First, Sun, Jan, 0, 600}; /* Always GMT+10                             */
+// TimeChangeRule mySTD = {"AEST", First, Sun, Jan, 0, 600}; /* Always GMT+10                             */
+/**********************************************************************************************************/
+Timezone myTZ(myDST, mySTD);                                 /* Create the timezone object                */
+const char* previousTZAbbrev = "";                           /* For serial log to detect when DST changed */
+/**********************************************************************************************************/
 
 #ifdef DEBUG_MODE
   /*****************************************************/
@@ -118,12 +121,12 @@ const char* password = "Today123!";         /* Your WiFi password here */
     "Dummy test failure",
     "Dummy test failure"
   };
-  /* Timers for testing ****************************************************/
-  const int PING_TIMER       = 10000;   /* Delay between normal pings (ms) */
-  const int PING_RETRIES     = 3;             /* Retry ping before failing */
-  const int PING_RETRY_TIMER = 5000;         /* Delay between retries (ms) */
-  const int POWER_CYCLE_TIME = 30;          /* Delay for power cycling (s) */
-  const int RECOVERY_DELAY   = 120;    /* Delay after powering back on (s) */
+  /* Timers for testing ***************************************************/
+  const int PING_TIMER       = 10000; /* Delay between normal pings (ms)  */
+  const int PING_RETRIES     = 3;     /* Retry ping before failing        */
+  const int PING_RETRY_TIMER = 5000;  /* Delay between retries (ms)       */
+  const int POWER_CYCLE_TIME = 30;    /* Delay for power cycling (s)      */
+  const int RECOVERY_DELAY   = 120;   /* Delay after powering back on (s) */
   /*************************************************************************/
 #else
   /*****************************************************/
@@ -167,7 +170,7 @@ const char* password = "Today123!";         /* Your WiFi password here */
   /************************************************************************/
 #endif
 const int NUM_DNS = sizeof(dnsList) / sizeof(dnsList[0]); /* Count of ping targets */
-int currentIPIndex = 0; /* Round-robin index */
+int currentIPIndex = 0;                                       /* Round-robin index */
 
 /* Ping statistics for each DNS address ****************************************************/
 uint32_t okCount[NUM_DNS]        = {0}; /* How many OK pings                               */
@@ -183,6 +186,8 @@ const int RELAY_PIN        = 5;   /* GPIO5, active HIGH via 2N2222              
 const int OK_LED_PIN       = 0;   /* GPIO0                                              */
 const int FAILURE_LED_PIN  = 1;   /* GPIO1                                              */
 const int BUILTIN_LED_PIN  = 10;  /* WS2812 RGB LED on GPIO10 (Waveshare ESP32-C3-Zero) */
+#define RELAY_ENERGISE     HIGH   /* Energise coil = cut power to router (NO contact)   */
+#define RELAY_DEENERGISE   LOW    /* De-energise coil = restore power (NC contact)      */
 /****************************************************************************************/
 
 /* Avoid kernel panic after router reboot if HTTP status page is active */
@@ -259,6 +264,23 @@ String timeAgo(uint32_t lastTime)
   return s;
 }
 
+/********************************/
+/* Serial log when DST changed  */
+/********************************/
+void logTimezoneChange(const char* currentAbbrev)
+{
+  if (currentAbbrev && previousTZAbbrev[0] != '\0' && strcmp(currentAbbrev, previousTZAbbrev) != 0)
+  {
+    Serial.print(F(">> Timezone changed: "));
+    Serial.print(previousTZAbbrev);
+    Serial.print(F(" to "));
+    Serial.println(currentAbbrev);
+  }
+  
+  /* Update for next time */
+  previousTZAbbrev = currentAbbrev;
+}
+
 /*********************************/
 /* Get current local time and TZ */
 /*********************************/
@@ -268,6 +290,7 @@ time_t getLocalTimeWithAbbrev(const char** abbrev)
   TimeChangeRule *tcr = nullptr; /* Pointer to active DST rule */
   time_t local = myTZ.toLocal(utc, &tcr);
   if (abbrev) *abbrev = tcr->abbrev;
+  logTimezoneChange(tcr->abbrev); /* Serial log if DST changes */
   return local;
 }
 
