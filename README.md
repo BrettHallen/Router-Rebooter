@@ -25,29 +25,32 @@ After another short delay whilst the router reconnects (2-3min) I'll reconnect t
 This is how it works using the serial port output - here we simulate the loss of Internet by using dummy IP addresses:<br>
 ```
 >> Brett's Router Rebooter Starting!
-   (28/Mar/2026)
+   (2/Apr/2026)
+>> Monitoring NF18ACV
 >> Timer/retry settings (DEBUG):
    Ping timer .......... 10s
    Ping retries ........ 3
    Ping retry timer .... 5s
    Power cycle timer ... 30s
-   Recovery delay ...... 2min
->> Hardware initialised: Router on, OK LED on, FAILUIRE LED off, Ping LED off.
+   Recovery delay ...... 120s
+>> Hardware initialised: Router on, OK LED on, FAILURE LED off, Ping LED off.
+!! [handleHttpClients] WiFi not connected, ignoring HTTP requests.
 >> Connecting to WiFi network <RouterRebootTest> ...
-!! WiFi status = 0 (idle, not attempting to connect)
-!! WiFi status = 0 (idle, not attempting to connect)
-!! WiFi status = 0 (idle, not attempting to connect)
+>> Using static IP address <192.168.128.129>
 >> WiFi status = 3 (successfully connected!)
->> Connected to <RouterRebootTest> with address <192.168.1.36>.
->> Pinging 1.1.1.1 ... OK!
->> Pinging 192.168.123.123 ... failed!
->> Pinging 1.0.0.1 ... OK!
->> Pinging 192.168.123.123 ... failed!
->> Pinging 192.168.123.123 ... failed!
->> Pinging 192.168.123.123 ... failed!
->> Pinging 192.168.123.123 ... failed!
+>> Connected to <RouterRebootTest> with address <192.168.128.129>
+>> HTTP status page started on port 80
+   Open in browser: http://192.168.128.129
+>> Syncing NTP time (pool.ntp.org) ... 02/Apr/2026 18:53:07 (AEDT)
+>> Pinging 1.1.1.1          Cloudflare primary   ... OK!
+>> Pinging 192.168.123.123  Dummy test failure   ... failed!
+>> Pinging 1.0.0.1          Cloudflare secondary ... OK!
+>> Pinging 192.168.123.123  Dummy test failure   ... failed!
+>> Pinging 192.168.123.123  Dummy test failure   ... failed!
+>> Pinging 192.168.123.123  Dummy test failure   ... failed!
+>> Pinging 192.168.123.123  Dummy test failure   ... failed!
 !! No response after retries, disconnecting router power.
-   Waiting 30s before reconnecting power ...
+>> Waiting 30s before reconnecting power ...
    30s
    25s
    20s
@@ -55,30 +58,28 @@ This is how it works using the serial port output - here we simulate the loss of
    10s
    5s
 >> Powering router back on.
->> Starting recovery wait ...
-   Waiting 2min
-   Waiting 1min
->> Router recovery finished – restarting monitoring.
-
-
->> Connecting to WiFi network <RouterRebootTest> ...
-!! WiFi status = 0 (idle, not attempting to connect)
-!! WiFi status = 0 (idle, not attempting to connect)
-!! WiFi status = 0 (idle, not attempting to connect)
-!! WiFi status = 0 (idle, not attempting to connect)
->> WiFi status = 3 (successfully connected!)
->> Connected to <RouterRebootTest> with address <192.168.1.36>.
->> Pinging 1.1.1.1 ... OK!
+>> Waiting 120s before resuming monitoring ...
+   120s
+   105s
+   90s
+   75s
+   60s
+   45s
+   30s
+   15s
+>> Router recovery finished – resuming monitoring.
 
 ... and so on ...
 ```
 And this is what it does when the Internet is fine, which should be 99.9% of the time:
 ```
+
+
 >> Brett's Router Rebooter Starting!
    (2/Apr/2026)
 >> Monitoring NF18ACV
 >> Timer/retry settings:
-   Ping timer .......... 30s
+   Ping timer .......... 1s
    Ping retries ........ 5
    Ping retry timer .... 15s
    Power cycle timer ... 30s
@@ -91,21 +92,24 @@ And this is what it does when the Internet is fine, which should be 99.9% of the
 >> Connected to <RouterRebootTest> with address <192.168.128.129>
 >> HTTP status page started on port 80
    Open in browser: http://192.168.128.129
->> Syncing NTP time (pool.ntp.org) ... 02/Apr/2026 13:03:56 (AEDT)
->> Pinging 1.1.1.1 (Cloudflare primary) ... OK!
->> Pinging 1.0.0.1 (Cloudflare secondary) ... OK!
->> Pinging 8.8.8.8 (Google primary) ... OK!
->> Pinging 8.8.4.4 (Google secondary) ... OK!
->> Pinging 9.9.9.9 (Quad9 primary) ... OK!
->> Pinging 149.112.112.112 (Quad9 secondary) ... OK!
->> Pinging 4.2.2.1 (Level 3 primary) ... OK!
->> Pinging 4.2.2.2 (Level 3 secondary) ... OK!
->> Pinging 4.2.2.3 (Level 3 tertiary) ... OK!
->> Pinging 208.67.222.222 (OpenDNS primary) ... OK!
->> Pinging 208.67.220.220 (OpenDNS secondary) ... OK!
+>> Syncing NTP time (pool.ntp.org) ... 02/Apr/2026 20:26:19 (AEDT)
+>> Pinging 1.1.1.1          Cloudflare primary   ... OK!
+>> Pinging 1.0.0.1          Cloudflare secondary ... OK!
+>> Pinging 8.8.8.8          Google primary       ... OK!
+>> Pinging 8.8.4.4          Google secondary     ... OK!
+>> Pinging 9.9.9.9          Quad9 primary        ... OK!
+>> Pinging 149.112.112.112  Quad9 secondary      ... OK!
+>> Pinging 4.2.2.1          Level 3 primary      ... OK!
+>> Pinging 4.2.2.2          Level 3 secondary    ... OK!
+>> Pinging 4.2.2.3          Level 3 tertiary     ... OK!
+>> Pinging 208.67.222.222   OpenDNS primary      ... OK!
+>> Pinging 208.67.220.220   OpenDNS secondary    ... OK!
+>> Pinging 1.1.1.1          Cloudflare primary   ... OK!
+>> Pinging 1.0.0.1          Cloudflare secondary ... OK!
+>> Pinging 8.8.8.8          Google primary       ... OK!
+>> Pinging 8.8.4.4          Google secondary     ... OK!
 
-.........
-
+... and so on ...
 ```
 
 ## Firmware (Arduino Sketch)
