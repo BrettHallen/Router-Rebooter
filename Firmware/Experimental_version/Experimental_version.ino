@@ -95,6 +95,8 @@ TimeChangeRule mySTD = {"AEST", First, Sun, Apr, 3, 600};    /* GMT+10 hours fro
 Timezone myTZ(myDST, mySTD);                                 /* Create the timezone object                */
 const char* previousTZAbbrev = "";                           /* For serial log to detect when DST changed */
 /**********************************************************************************************************/
+#define MIN_VALID_TIME 1743465600UL       /* 1/Apr/2026 ... ensure only reasonable timestamps             */
+/**********************************************************************************************************/
 
 #ifdef DEBUG_MODE
   /*****************************************************/
@@ -419,7 +421,7 @@ void serveHttpPage(WiFiClient &client)
   client.print(F("<tr><th>Current time (NTP)</th><td>")); client.print(formatNTPTime(localTime, tzAbbrev)); client.println(F("</td></tr>"));
   /* When we last rebooted the router (time ago & time stamp) */
   client.print(F("<tr><th>Last router reboot</th><td>"));   client.print(timeAgo(lastRebootTime)); 
-  if (lastRebootNTP > 0) 
+  if (lastRebootNTP > MIN_VALID_TIME)
   { /* Only print timestamp if there actually is one */
     TimeChangeRule *tcr = nullptr;
     time_t localRebootTime = myTZ.toLocal(lastRebootNTP, &tcr);
@@ -466,8 +468,8 @@ void serveHttpPage(WiFiClient &client)
     client.print(F("</td><td>"));
     client.print(failCount[i]);
     client.print(F("</td><td>"));
-    /* Only print the failed timestamp if there is one */
-    if (lastFailedPing[i] > 0) 
+    /* Only print the failed timestamp if there is one and it's valid */
+    if (lastFailedPing[i] > MIN_VALID_TIME)
     {
       TimeChangeRule *tcr = nullptr;
       time_t localFailedTime = myTZ.toLocal(lastFailedPing[i], &tcr); /* Convert from GMT/UTC to local time */
