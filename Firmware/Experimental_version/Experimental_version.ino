@@ -79,7 +79,7 @@ const char* githubRepo = "https://github.com/BrettHallen/Router-Rebooter";   /* 
 /************************************************************************************/
 
 /* WiFi configuration **************************************************/
-const char* ssid     = "RouterRebootTest";      /* Your WiFi SSID here */
+const char* ssid     = "RouterRebootTest";  /* Your WiFi SSID here     */
 const char* password = "Today123!";         /* Your WiFi password here */
 /***********************************************************************/
 
@@ -94,13 +94,14 @@ TimeChangeRule mySTD = {"AEST", First, Sun, Apr, 3, 600};    /* GMT+10 hours fro
 /**********************************************************************************************************/
 Timezone myTZ(myDST, mySTD);                                 /* Create the timezone object                */
 const char* previousTZAbbrev = "";                           /* For serial log to detect when DST changed */
+bool ntpTimeSynced = false;                                  /* True after first successful NTP sync      */
 /**********************************************************************************************************/
 #define MIN_VALID_TIME 1743465600UL       /* 1/Apr/2026 ... ensure only reasonable timestamps             */
 /**********************************************************************************************************/
 
 #ifdef DEBUG_MODE
   /*****************************************************/
-  /* Round-robin DNS list ******************************/
+  /* Round-robin DNS list                              */
   /* DEBUG mode – includes dummy IPs to force failures */
   /*****************************************************/
   const IPAddress dnsList[] = 
@@ -132,7 +133,7 @@ const char* previousTZAbbrev = "";                           /* For serial log t
   /*************************************************************************/
 #else
   /*****************************************************/
-  /* Round-robin DNS list ******************************/
+  /* Round-robin DNS list                              */
   /*****************************************************/
   const IPAddress dnsList[] = 
   {
@@ -271,6 +272,9 @@ String timeAgo(uint32_t lastTime)
 /********************************/
 void logTimezoneChange(const char* currentAbbrev)
 {
+  /* Don't check if we don't have a valid TZ yet */
+  if (!ntpTimeSynced) return;
+  
   if (currentAbbrev && previousTZAbbrev[0] != '\0' && strcmp(currentAbbrev, previousTZAbbrev) != 0)
   {
     Serial.print(F(">> Timezone changed: "));
@@ -327,7 +331,7 @@ String formatNTPTime(time_t t, const char* tzAbbrev = nullptr)
 void syncNTPTime()
 {
   Serial.print(">> Syncing NTP time (pool.ntp.org) ... ");
-  /* Get GMT only */
+  /* Get GMT/UTC only */
   configTime(0, 0, ntpServer);
   /* Give it a few seconds to get a valid time */
   for (int i = 0; i < 25; i++) 
@@ -335,12 +339,13 @@ void syncNTPTime()
     const char* tzAbbrev = nullptr;
     time_t localTime = getLocalTimeWithAbbrev(&tzAbbrev);
     if (localTime > 1000000000UL) 
-    {   /* valid Unix epoch */
+    {   /* Valid Unix epoch */
       Serial.print(formatNTPTime(localTime, tzAbbrev));
       Serial.println();
+      ntpTimeSynced = true; /* We should have a valid TZ now */
       return;
     }
-    delay(200);
+    delay(200); /* 200ms */
     handleHttpClients();
   }
   Serial.println("failed, no valid time yet");
@@ -515,8 +520,7 @@ void waitWithHttpCheck(long ms)
   while (millis() - start < (unsigned long)ms)
   {
     handleHttpClients();
-    /* Check every 200ms */
-    delay(200);
+    delay(200); /* 200ms */
   }
 }
 
@@ -529,25 +533,44 @@ bool performPing()
   pixels.show();
 
   IPAddress currentTarget = dnsList[currentIPIndex];
+  const char* name = dnsName[currentIPIndex];
 
-  Serial.print(">> Pinging "); Serial.print(currentTarget); Serial.print(" ("); Serial.print(dnsName[currentIPIndex]); Serial.print(") ... ");
+  Serial.print(F(">> Pinging "));
+
+  /* Convert IP to String and pad to a fixed width */
+  String ipStr = currentTarget.toString();
+  Serial.print(ipStr);
+  for (int i = ipStr.length(); i < 17; i++) 
+  {
+    Serial.print(' ');
+  }
+
+  /* Print the name and pad to a fixed width */
+  Serial.print(name);
+  for (int i = strlen(name); i < 21; i++) 
+  {  
+    Serial.print(' ');
+  }
+
+  Serial.print(F("... "));
 
   if (Ping.ping(currentTarget, 1)) 
   {
-    Serial.println("OK!");
+    Serial.println(F("OK!"));
     okCount[currentIPIndex]++;
     currentIPIndex = (currentIPIndex + 1) % NUM_DNS;
-    pixels.setPixelColor(0, pixels.Color(0, 0, 0));
+    pixels.setPixelColor(0, pixels.Color(0, 0, 0)); /* ESP32 LED off */
     pixels.show();
     return true;
   } 
   else 
   {
-    Serial.println("failed!");
+    Serial.println(F("failed!"));
     failCount[currentIPIndex]++;
-    lastFailedPing[currentIPIndex] = time(NULL); /* Store as GMT/UTC, not local time */
+    const char* dummyAbbrev = nullptr;
+    lastFailedPing[currentIPIndex] = getLocalTimeWithAbbrev(&dummyAbbrev);
     currentIPIndex = (currentIPIndex + 1) % NUM_DNS;
-    pixels.setPixelColor(0, pixels.Color(0, 255, 0));
+    pixels.setPixelColor(0, pixels.Color(0, 255, 0)); /* Red */
     pixels.show();
     return false;
   }
@@ -594,11 +617,11 @@ void connectToWiFi()
     /* Set green */
     pixels.setPixelColor(0, pixels.Color(255, 0, 0));
     pixels.show();
-    delay(250);
+    delay(250); /* 250ms */
     /* Set blue */
     pixels.setPixelColor(0, pixels.Color(0, 0, 255));
     pixels.show();
-    delay(250);
+    delay(250); /* 250ms */
     /* Output WiFi status to serial console */ 
     printWiFiStatus(); 
   }
@@ -627,7 +650,7 @@ void connectToWiFi()
 void setup() 
 {
   Serial.begin(115200);
-  delay(1000);
+  delay(1000); /* 1s */
   Serial.println("\n\n>> Brett's Router Rebooter Starting!");
   Serial.print("   ("); Serial.print(versionDate); Serial.println(")");
   Serial.print(">> Monitoring "); Serial.println(myRouter);
@@ -759,17 +782,18 @@ void loop()
     int COUNT_DOWN_STEP = 5; /* Update every 5s */
     for (int seconds = POWER_CYCLE_TIME; seconds > 0; seconds-=COUNT_DOWN_STEP)
     {
-      /* Keep web page alive during countdown - REMOVED due to kernel panics */
+      /* Keep web page alive during countdown - REMOVED due to kernel panics during WiFi reconnect */
       // handleHttpClients(); 
       Serial.print("   "); Serial.print(seconds); Serial.println("s");
       for (int i = 0; i < COUNT_DOWN_STEP; i++)
       {
+        /* This accounts for 1s */
         pixels.setPixelColor(0, pixels.Color(255, 0, 0));
         pixels.show();
-        delay(500);
+        delay(500); /* 500ms */
         pixels.setPixelColor(0, pixels.Color(0, 0, 0));
         pixels.show();
-        delay(500);
+        delay(500); /* 500ms */
       }
     }
     Serial.println(">> Powering router back on.");
@@ -779,21 +803,22 @@ void loop()
     Serial.print(">> Waiting "); Serial.print(RECOVERY_DELAY); Serial.println("s before resuming monitoring ...");
     for (int seconds = RECOVERY_DELAY; seconds > 0; seconds-=(COUNT_DOWN_STEP*3)) /* Update every 15s */
     {
-      /* Keep web page alive during countdown - REMOVED due to kernel panics */
+      /* Keep web page alive during countdown - REMOVED due to kernel panics during WiFi reconnect */
       // handleHttpClients(); 
       Serial.print("   ");  Serial.print(seconds);  Serial.println("s");
       for (int i = 0; i < (COUNT_DOWN_STEP*3); i++) 
       {
+        /* This accounts for 1s */
         digitalWrite(OK_LED_PIN, HIGH);                   /* OK on       */
         digitalWrite(FAILURE_LED_PIN, LOW);               /* FAILURE off */
         pixels.setPixelColor(0, pixels.Color(255, 0, 0)); /* Green       */
         pixels.show();
-        delay(500);
+        delay(500); /* 500ms */
         digitalWrite(OK_LED_PIN, LOW);                    /* OK off     */
         digitalWrite(FAILURE_LED_PIN, HIGH);              /* FAILURE on */
         pixels.setPixelColor(0, pixels.Color(0, 255, 0)); /* Red        */
         pixels.show();
-        delay(500);
+        delay(500); /* 500ms */
       }
     }
 
@@ -804,7 +829,7 @@ void loop()
     setNormalState();
     
     WiFi.disconnect(true);
-    delay(2000);
+    delay(2000); /* 2s */
     break;
   }
 }
