@@ -1,38 +1,39 @@
-/*********************************************************************/
-/* Router Rebooter for ESP32-C3-Zero                                 */
-/*                                                                   */
-/* Brett Hallen, 26/Mar/2026: initial                                */
-/*               27/Mar/2026: round-robin pinging                    */
-/*               28/Mar/2026: ESP32 LED                              */
-/*               29/Mar/2026: Static IP, HTTP stats/status page      */
-/*               30/Mar/2026: added DNS names, NTP time keeping      */
-/*               31/Mar/2026: code cleanup & commenting              */
-/*                            added F() macro to reduce RAM/heap use */
-/*                1/Apr/2026: added Github link to status page       */
-/*                2/Apr/2026: added TZ/DST support                   */
-/*                                                                   */
-/* HARDWARE MAPPING:                                                 */
-/*   Relay control: GPIO 5 (pin 9) via 2N2222 transistor             */
-/*                  active HIGH to energise                          */
-/*   OK LED:        GPIO 0 (pin 4)                                   */
-/*   FAILURE LED:   GPIO 1 (pin 5)                                   */
-/*                                                                   */
-/* RELAY BEHAVIOR:                                                   */
-/*   NC contact used, coil de-energised most of the time (router on) */
-/*   Only energise coil when we need to cut power (reboot)           */
-/*                                                                   */
-/* LED BEHAVIOUR:                                                    */
-/*   OK LED:      steady when router is okay,                        */
-/*                flashing when recovery in progress                 */
-/*   FAILURE LED: steady when pinging has failed                     */
-/*   ESP32:       flashes blue when pinging,                         */
-/*                red when ping failed,                              */
-/*                flashes green during recovery                      */
-/*                blue/green when connecting to WiFi                 */
-/*********************************************************************/
+/**********************************************************************/
+/* Router Rebooter for ESP32-C3-Zero                                  */
+/*                                                                    */
+/* Brett Hallen, 26/Mar/2026: initial                                 */
+/*               27/Mar/2026: round-robin pinging                     */
+/*               28/Mar/2026: ESP32 LED                               */
+/*               29/Mar/2026: Static IP, HTTP stats/status page       */
+/*               30/Mar/2026: added DNS names, NTP time keeping       */
+/*               31/Mar/2026: code cleanup & commenting               */
+/*                            added F() macro to reduce RAM/heap use  */
+/*                1/Apr/2026: added Github link to status page        */
+/*                2/Apr/2026: added TZ/DST support                    */
+/*                5/Apr/2026: added reboot count & other minor tweaks */
+/*                                                                    */
+/* HARDWARE MAPPING:                                                  */
+/*   Relay control: GPIO 5 (pin 9) via 2N2222 transistor              */
+/*                  active HIGH to energise                           */
+/*   OK LED:        GPIO 0 (pin 4)                                    */
+/*   FAILURE LED:   GPIO 1 (pin 5)                                    */
+/*                                                                    */
+/* RELAY BEHAVIOR:                                                    */
+/*   NC contact used, coil de-energised most of the time (router on)  */
+/*   Only energise coil when we need to cut power (reboot)            */
+/*                                                                    */
+/* LED BEHAVIOUR:                                                     */
+/*   OK LED:      steady when router is okay,                         */
+/*                flashing when recovery in progress                  */
+/*   FAILURE LED: steady when pinging has failed                      */
+/*   ESP32:       flashes blue when pinging,                          */
+/*                red when ping failed,                               */
+/*                flashes green during recovery                       */
+/*                blue/green when connecting to WiFi                  */
+/**********************************************************************/
 
 /* Required Arduino libraries **********************************************************************/
-#include <WiFi.h>
+#include <WiFi.h>                /* Wonder what this is for                                        */
 #include <ESPping.h>             /* Required for pings                                             */
 #include <Adafruit_NeoPixel.h>   /* Required for the WS2812 RGB LED on the Waveshare ESP32-C3-Zero */
 #include <time.h>                /* Required for NTP real-time clock support                       */
@@ -61,7 +62,7 @@
 /**********************************************************************/
 
 /* Status page settings *******************************************************************/
-const char* versionDate = "2/Apr/2026";                 /* Version date of this firmware  */
+const char* versionDate = "5/Apr/2026";                 /* Version date of this firmware  */
 const char* myRouter = "NF18ACV";                       /* Customise to help identify me! */
 const char* myRouterAdminPage = "http://192.168.1.1"; /* Admin/login page for your router */
 //const char* myRouterAdminPage = "";              /* No admin/login page for your router */
@@ -181,6 +182,7 @@ uint32_t failCount[NUM_DNS]      = {0}; /* How many failed pings                
 time_t   lastFailedPing[NUM_DNS] = {0}; /* Timestamp of last failed ping                   */
 uint32_t lastRebootTime          = 0;   /* millis() when last router reboot occurred       */
 time_t   lastRebootNTP           = 0;   /* NTP timestamp of last router reboot (0 = never) */
+uint32_t rebootCount             = 0;   /* How many router reboots                         */
 uint32_t esp32UpTime             = 0;   /* millis() since last ESP32 restart               */
 /*******************************************************************************************/
 
@@ -192,6 +194,14 @@ const int BUILTIN_LED_PIN  = 10;  /* WS2812 RGB LED on GPIO10 (Waveshare ESP32-C
 #define RELAY_ENERGISE     HIGH   /* Energise coil = cut power to router (NO contact)   */
 #define RELAY_DEENERGISE   LOW    /* De-energise coil = restore power (NC contact)      */
 /****************************************************************************************/
+
+/*****************************************************/
+/* Circular buffer for the last 15 serial debug logs */
+/* Not currently used, maybe later                   */
+// const int MAX_LOG_LINES = 15;
+// String logBuffer[MAX_LOG_LINES];
+// int logHead = 0;
+/*****************************************************/
 
 /* Avoid kernel panic after router reboot if HTTP status page is active */
 bool rebootInProgress = false;
@@ -430,10 +440,12 @@ void serveHttpPage(WiFiClient &client)
   { /* Only print timestamp if there actually is one */
     TimeChangeRule *tcr = nullptr;
     time_t localRebootTime = myTZ.toLocal(lastRebootNTP, &tcr);
-    client.print(F("  ")); 
+    client.print(F(" at ")); 
     client.print(formatNTPTime(localRebootTime, tcr->abbrev)); 
   }
   client.println(F("</td></tr>"));
+  /* How many times have we power cycled the router */
+  client.print(F("<tr><th>Reboot count</th><td>")); client.print(rebootCount); client.println(F("</td></tr>"));
   /* When the ESP32 was last reset/rebooted */
   client.print(F("<tr><th>Last ESP32 reboot</th><td>")); client.print(timeAgo(esp32UpTime)); client.println(F("</td></tr>"));
   client.println(F("</table></p>"));
@@ -482,11 +494,38 @@ void serveHttpPage(WiFiClient &client)
     }
     client.println(F("</td></tr>"));
   }
-  client.println(F("</table></body></html>"));
+  client.println(F("</table></p>"));
+
+  /* Print last few logs to HTTP status page as well */
+  // client.print(F("<h2>Last ");
+  // client.print(MAX_LOG_LINES);
+  // client.println(" debug logs</h2>"));
+  // client.println(F("<pre style=\"background:#f4f4f4;padding:10px;font-family:monospace;font-size:0.9em;overflow:auto;max-height:300px;\">"));
+  
+  // for (int i = 0; i < MAX_LOG_LINES; i++)
+  // {
+  //   int idx = (logHead + i) % MAX_LOG_LINES;
+  //   if (logBuffer[idx].length() > 0)
+  //     client.println(logBuffer[idx]);
+  // }
+  // client.println(F("</pre>"));
+
+  client.println(F("</body></html>"));
   
   /* Ensure the whole page is sent before closing */
   client.flush();
 }
+
+/*************************************/
+/* Log print to serial & status page */
+/* Not currently used, maybe later   */
+/*************************************/
+// void logPrintln(const String& msg)
+// {
+//   Serial.println(msg);                     /* Output log to serial port*/
+//   logBuffer[logHead] = msg;                /* Add it to the buffer for the status page */
+//   logHead = (logHead + 1) % MAX_LOG_LINES; /* Circular wrap-around */
+// }
 
 /***************************************/
 /* Check for HTTP status page requests */
@@ -776,6 +815,7 @@ void loop()
     /* Record both millis and timestamp */
     lastRebootTime = millis();
     lastRebootNTP = time(NULL); /* Store as GMT/UTC, not local time */
+    rebootCount++;
 
     /* Keep router off for a short period to ensure we clear everything from RAM */
     Serial.print(">> Waiting "); Serial.print(POWER_CYCLE_TIME); Serial.println("s before reconnecting power ...");
