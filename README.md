@@ -112,7 +112,7 @@ And this is what it does when the Internet is fine, which should be 99.9% of the
 ... and so on ...
 ```
 
-## Firmware (Arduino Sketch)
+## [Firmware (Arduino Sketch)](/Firmware)
 Use the Arduino IDE to compile & transfer to the ESP32.<br>
 
 ### Versions
