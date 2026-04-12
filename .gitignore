@@ -9,3 +9,4 @@ KiCad/pcbway_production/.DS_Store
 KiCad/RevC/fp-info-cache
 /Firmware/Zepoon
 /Firmware/Relay_Test
+*.lck
