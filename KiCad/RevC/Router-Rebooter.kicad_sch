@@ -2174,10 +2174,10 @@
 		)
 		(uuid "b2fe087a-5995-4ebf-aab7-aaf5d53953ca")
 	)
-	(text_box "In case you have connected the ESP32 to USB, we don't want both USB and the regulator feeding +5V to it.\n\nStrapped/linked: ESP32 powered via 12V input via 5V regulator\nUnstrapped/open: ESP32 powered via USB"
+	(text_box "Schottky diode prevents regulator back-feeding when USB is connected."
 		(exclude_from_sim no)
-		(at 195.58 50.8 0)
-		(size 68.58 11.43)
+		(at 193.04 63.5 0)
+		(size 73.66 3.81)
 		(margins 0.9525 0.9525 0.9525 0.9525)
 		(stroke
 			(width 0)
@@ -2518,7 +2518,7 @@
 	)
 	(wire
 		(pts
-			(xy 224.79 77.47) (xy 240.03 77.47)
+			(xy 226.06 77.47) (xy 240.03 77.47)
 		)
 		(stroke
 			(width 0)
@@ -2595,6 +2595,16 @@
 			(type default)
 		)
 		(uuid "8c70ce1b-abe4-418c-b9c4-bce2bb2dcd3d")
+	)
+	(wire
+		(pts
+			(xy 218.44 77.47) (xy 214.63 77.47)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8cc5f3a2-0cf1-4eff-b6e9-f7e293f1a173")
 	)
 	(wire
 		(pts
@@ -2725,16 +2735,6 @@
 			(type default)
 		)
 		(uuid "cc983d15-1881-4b96-b669-addd24e3f238")
-	)
-	(wire
-		(pts
-			(xy 214.63 77.47) (xy 222.25 77.47)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d1d207f2-247e-41f5-8145-8657a9c834c5")
 	)
 	(wire
 		(pts
@@ -3166,6 +3166,92 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:D")
+		(at 222.25 77.47 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "580d28cb-958d-4ea1-a66b-f6e03b6d60eb")
+		(property "Reference" "D4"
+			(at 222.25 71.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1N5819"
+			(at 222.25 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal"
+			(at 222.25 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 222.25 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Diode"
+			(at 222.25 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Sim.Device" "D"
+			(at 222.25 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Sim.Pins" "1=K 2=A"
+			(at 222.25 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "a5c906f7-0b42-4342-9749-00dbd2fd2c7e")
+		)
+		(pin "2"
+			(uuid "447fee9b-4f64-412a-aac0-ca2c50b52c24")
+		)
+		(instances
+			(project "Router-Rebooter"
+				(path "/8de648ee-e13b-40be-adc8-7d40ce8ea697"
+					(reference "D4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Mechanical:MountingHole")
 		(at 146.05 173.99 0)
 		(unit 1)
@@ -3387,7 +3473,7 @@
 				)
 			)
 		)
-		(property "Value" "1N4148"
+		(property "Value" "1N4004"
 			(at 144.78 80.01 0)
 			(effects
 				(font
@@ -3395,7 +3481,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Diode_THT:D_DO-35_SOD27_P7.62mm_Horizontal"
+		(property "Footprint" "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal"
 			(at 144.78 83.82 0)
 			(effects
 				(font
@@ -4191,75 +4277,6 @@
 			(project ""
 				(path "/8de648ee-e13b-40be-adc8-7d40ce8ea697"
 					(reference "H3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector_Generic:Conn_01x02")
-		(at 222.25 72.39 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "ec89ccc5-a557-4b95-8cfa-31a8512522f6")
-		(property "Reference" "J2"
-			(at 218.948 65.532 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "ESP32 Power Bypass"
-			(at 214.63 68.072 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"
-			(at 222.25 72.39 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 222.25 72.39 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 222.25 72.39 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "a689a2ce-d426-46fd-9e89-605a36c5fdd2")
-		)
-		(pin "1"
-			(uuid "c3742d2e-19cd-4af8-ac67-dcaae9a6e521")
-		)
-		(instances
-			(project ""
-				(path "/8de648ee-e13b-40be-adc8-7d40ce8ea697"
-					(reference "J2")
 					(unit 1)
 				)
 			)
