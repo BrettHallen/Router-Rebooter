@@ -1,36 +1,38 @@
-/**********************************************************************/
-/* Router Rebooter for ESP32-C3-Zero                                  */
-/*                                                                    */
-/* Brett Hallen, 26/Mar/2026: initial                                 */
-/*               27/Mar/2026: round-robin pinging                     */
-/*               28/Mar/2026: ESP32 LED                               */
-/*               29/Mar/2026: Static IP, HTTP stats/status page       */
-/*               30/Mar/2026: added DNS names, NTP time keeping       */
-/*               31/Mar/2026: code cleanup & commenting               */
-/*                            added F() macro to reduce RAM/heap use  */
-/*                1/Apr/2026: added Github link to status page        */
-/*                2/Apr/2026: added TZ/DST support                    */
-/*                5/Apr/2026: added reboot count & other minor tweaks */
-/*                                                                    */
-/* HARDWARE MAPPING:                                                  */
-/*   Relay control: GPIO 5 (pin 9) via 2N2222 transistor              */
-/*                  active HIGH to energise                           */
-/*   OK LED:        GPIO 0 (pin 4)                                    */
-/*   FAILURE LED:   GPIO 1 (pin 5)                                    */
-/*                                                                    */
-/* RELAY BEHAVIOR:                                                    */
-/*   NC contact used, coil de-energised most of the time (router on)  */
-/*   Only energise coil when we need to cut power (reboot)            */
-/*                                                                    */
-/* LED BEHAVIOUR:                                                     */
-/*   OK LED:      steady when router is okay,                         */
-/*                flashing when recovery in progress                  */
-/*   FAILURE LED: steady when pinging has failed                      */
-/*   ESP32:       flashes blue when pinging,                          */
-/*                red when ping failed,                               */
-/*                flashes green during recovery                       */
-/*                blue/green when connecting to WiFi                  */
-/**********************************************************************/
+/***********************************************************************/
+/* Router Rebooter for ESP32-C3-Zero                                   */
+/*                                                                     */
+/* Brett Hallen, 26/Mar/2026: initial                                  */
+/*               27/Mar/2026: round-robin pinging                      */
+/*               28/Mar/2026: ESP32 LED                                */
+/*               29/Mar/2026: Static IP, HTTP stats/status page        */
+/*               30/Mar/2026: added DNS names, NTP time keeping        */
+/*               31/Mar/2026: code cleanup & commenting                */
+/*                            added F() macro to reduce RAM/heap use   */
+/*                1/Apr/2026: added Github link to status page         */
+/*                2/Apr/2026: added TZ/DST support                     */
+/*                5/Apr/2026: added reboot count & other minor tweaks  */
+/*               16/Apr/2026: fixed UTC-AEDT conversion                */
+/*                            calculate MIN_VALID_TIME at compile time */
+/*                                                                     */
+/* HARDWARE MAPPING:                                                   */
+/*   Relay control: GPIO 5 (pin 9) via 2N2222 transistor               */
+/*                  active HIGH to energise                            */
+/*   OK LED:        GPIO 0 (pin 4)                                     */
+/*   FAILURE LED:   GPIO 1 (pin 5)                                     */
+/*                                                                     */
+/* RELAY BEHAVIOR:                                                     */
+/*   NC contact used, coil de-energised most of the time (router on)   */
+/*   Only energise coil when we need to cut power (reboot)             */
+/*                                                                     */
+/* LED BEHAVIOUR:                                                      */
+/*   OK LED:      steady when router is okay,                          */
+/*                flashing when recovery in progress                   */
+/*   FAILURE LED: steady when pinging has failed                       */
+/*   ESP32:       flashes blue when pinging,                           */
+/*                red when ping failed,                                */
+/*                flashes green during recovery                        */
+/*                blue/green when connecting to WiFi                   */
+/***********************************************************************/
 
 /* Required Arduino libraries **********************************************************************/
 #include <WiFi.h>                /* Wonder what this is for                                        */
@@ -62,7 +64,7 @@
 /**********************************************************************/
 
 /* Status page settings *******************************************************************/
-const char* versionDate = "5/Apr/2026";                 /* Version date of this firmware  */
+const char* versionDate = "16/Apr/2026";                 /* Version date of this firmware */
 const char* myRouter = "NF18ACV";                       /* Customise to help identify me! */
 const char* myRouterAdminPage = "http://192.168.1.1"; /* Admin/login page for your router */
 //const char* myRouterAdminPage = "";              /* No admin/login page for your router */
@@ -97,8 +99,31 @@ Timezone myTZ(myDST, mySTD);                                 /* Create the timez
 const char* previousTZAbbrev = "";                           /* For serial log to detect when DST changed */
 bool ntpTimeSynced = false;                                  /* True after first successful NTP sync      */
 /**********************************************************************************************************/
-#define MIN_VALID_TIME 1743465600UL       /* 1/Apr/2026 ... ensure only reasonable timestamps             */
+//#define MIN_VALID_TIME  1776297600UL     /* 16/Apr/2026 ... ensure only reasonable timestamps are shown */
 /**********************************************************************************************************/
+
+/*******************************************/
+/* Generate MIN_VALID_TIME at compile time */
+/* to ensure sane timestamps               */
+/*******************************************/
+#define COMPILE_YEAR   ((__DATE__[7]-'0')*1000 + (__DATE__[8]-'0')*100 + (__DATE__[9]-'0')*10 + (__DATE__[10]-'0'))
+#define COMPILE_MONTH  ( __DATE__[0]=='J' && __DATE__[1]=='a' && __DATE__[2]=='n' ? 1 : \
+                         __DATE__[0]=='F' ? 2 : \
+                         __DATE__[0]=='M' && __DATE__[1]=='a' && __DATE__[2]=='r' ? 3 : \
+                         __DATE__[0]=='A' && __DATE__[1]=='p' ? 4 : \
+                         __DATE__[0]=='M' && __DATE__[1]=='a' && __DATE__[2]=='y' ? 5 : \
+                         __DATE__[0]=='J' && __DATE__[1]=='u' && __DATE__[2]=='n' ? 6 : \
+                         __DATE__[0]=='J' && __DATE__[1]=='u' && __DATE__[2]=='l' ? 7 : \
+                         __DATE__[0]=='A' && __DATE__[1]=='u' ? 8 : \
+                         __DATE__[0]=='S' ? 9 : \
+                         __DATE__[0]=='O' ? 10 : \
+                         __DATE__[0]=='N' ? 11 : 12)
+#define COMPILE_DAY    ((__DATE__[4]==' ' ? 0 : __DATE__[4]-'0')*10 + (__DATE__[5]-'0'))
+#define MIN_VALID_TIME (((time_t)(COMPILE_YEAR - 1970) * 31536000UL) + \
+                        ((COMPILE_YEAR - 1969)/4 * 86400UL) - \
+                        ((COMPILE_YEAR - 1901)/100 * 86400UL) + \
+                        ((COMPILE_YEAR - 1601)/400 * 86400UL) + \
+                        0UL)
 
 #ifdef DEBUG_MODE
   /*****************************************************/
@@ -606,8 +631,7 @@ bool performPing()
   {
     Serial.println(F("failed!"));
     failCount[currentIPIndex]++;
-    const char* dummyAbbrev = nullptr;
-    lastFailedPing[currentIPIndex] = getLocalTimeWithAbbrev(&dummyAbbrev);
+    lastFailedPing[currentIPIndex] = time(NULL);      /* Store UTC */
     currentIPIndex = (currentIPIndex + 1) % NUM_DNS;
     pixels.setPixelColor(0, pixels.Color(0, 255, 0)); /* Red */
     pixels.show();
@@ -690,23 +714,25 @@ void setup()
 {
   Serial.begin(115200);
   delay(1000); /* 1s */
-  Serial.println("\n\n>> Brett's Router Rebooter Starting!");
+  Serial.println(F("\n\n>> Brett's Router Rebooter Starting!"));
   Serial.print("   ("); Serial.print(versionDate); Serial.println(")");
-  Serial.print(">> Monitoring "); Serial.println(myRouter);
+  Serial.print(F(">> Compiled ")); Serial.print(__DATE__); Serial.print(" "); Serial.println(__TIME__);
+  Serial.print(F(">> Monitoring ")); Serial.println(myRouter);
 
   /* Capture our start up time */
   esp32UpTime = millis();
 
 #ifdef DEBUG_MODE
-  Serial.println(">> Timer/retry settings (DEBUG):");
+  Serial.println(F(">> Timer/retry settings (DEBUG):"));
 #else
-  Serial.println(">> Timer/retry settings:");
+  Serial.println(F(">> Timer/retry settings:"));
 #endif
-  Serial.print("   Ping timer .......... "); Serial.print(PING_TIMER/1000); Serial.println("s");
-  Serial.print("   Ping retries ........ "); Serial.println(PING_RETRIES);
-  Serial.print("   Ping retry timer .... "); Serial.print(PING_RETRY_TIMER/1000); Serial.println("s");
-  Serial.print("   Power cycle timer ... "); Serial.print(POWER_CYCLE_TIME); Serial.println("s");
-  Serial.print("   Recovery delay ...... "); Serial.print(RECOVERY_DELAY); Serial.println("s");
+  Serial.print(F("   Ping timer .......... ")); Serial.print(PING_TIMER/1000); Serial.println("s");
+  Serial.print(F("   Ping retries ........ ")); Serial.println(PING_RETRIES);
+  Serial.print(F("   Ping retry timer .... ")); Serial.print(PING_RETRY_TIMER/1000); Serial.println("s");
+  Serial.print(F("   Power cycle timer ... ")); Serial.print(POWER_CYCLE_TIME); Serial.println("s");
+  Serial.print(F("   Recovery delay ...... ")); Serial.print(RECOVERY_DELAY); Serial.println("s");
+  Serial.print(F("   MIN_VALID_TIME ...... ")); Serial.println(MIN_VALID_TIME);
 
   /* Configure our output pins */
   pinMode(RELAY_PIN,           OUTPUT);           /* relay control pin             */
