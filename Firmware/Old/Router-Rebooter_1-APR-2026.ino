@@ -1,58 +1,51 @@
-/***********************************************************************/
-/* Router Rebooter for ESP32-C3-Zero                                   */
-/*                                                                     */
-/* Brett Hallen, 26/Mar/2026: initial                                  */
-/*               27/Mar/2026: round-robin pinging                      */
-/*               28/Mar/2026: ESP32 LED                                */
-/*               29/Mar/2026: Static IP, HTTP stats/status page        */
-/*               30/Mar/2026: added DNS names, NTP time keeping        */
-/*               31/Mar/2026: code cleanup & commenting                */
-/*                            added F() macro to reduce RAM/heap use   */
-/*                1/Apr/2026: added Github link to status page         */
-/*                2/Apr/2026: added TZ/DST support                     */
-/*                5/Apr/2026: added reboot count & other minor tweaks  */
-/*               16/Apr/2026: fixed UTC-AEDT conversion                */
-/*                            calculate MIN_VALID_TIME at compile time */
-/*                                                                     */
-/* HARDWARE MAPPING:                                                   */
-/*   Relay control: GPIO 5 (pin 9) via 2N2222 transistor               */
-/*                  active HIGH to energise                            */
-/*   OK LED:        GPIO 0 (pin 4)                                     */
-/*   FAILURE LED:   GPIO 1 (pin 5)                                     */
-/*                                                                     */
-/* RELAY BEHAVIOR:                                                     */
-/*   NC contact used, coil de-energised most of the time (router on)   */
-/*   Only energise coil when we need to cut power (reboot)             */
-/*                                                                     */
-/* LED BEHAVIOUR:                                                      */
-/*   OK LED:      steady when router is okay,                          */
-/*                flashing when recovery in progress                   */
-/*   FAILURE LED: steady when pinging has failed                       */
-/*   ESP32:       flashes blue when pinging,                           */
-/*                red when ping failed,                                */
-/*                flashes green during recovery                        */
-/*                blue/green when connecting to WiFi                   */
-/***********************************************************************/
+/*********************************************************************/
+/* Router Rebooter for ESP32-C3-Zero                                 */
+/*                                                                   */
+/* Brett Hallen, 26/Mar/2026: initial                                */
+/*               27/Mar/2026: round-robin pinging                    */
+/*               28/Mar/2026: ESP32 LED                              */
+/*               29/Mar/2026: Static IP, HTTP stats/status page      */
+/*               30/Mar/2026: added DNS names, NTP time keeping      */
+/*               31/Mar/2026: code cleanup & commenting              */
+/*                            added F() macro to reduce RAM/heap use */
+/*                1/Apr/2026: added Github link to status page       */
+/*                                                                   */
+/* HARDWARE MAPPING:                                                 */
+/*   Relay control: GPIO 5 (pin 9) via 2N2222 transistor             */
+/*                  active HIGH to energise                          */
+/*   OK LED:        GPIO 0 (pin 4)                                   */
+/*   FAILURE LED:   GPIO 1 (pin 5)                                   */
+/*                                                                   */
+/* RELAY BEHAVIOR:                                                   */
+/*   NC contact used, coil de-energised most of the time (router on) */
+/*   Only energise coil when we need to cut power (reboot)           */
+/*                                                                   */
+/* LED BEHAVIOUR:                                                    */
+/*   OK LED:      steady when router is okay,                        */
+/*                flashing when recovery in progress                 */
+/*   FAILURE LED: steady when pinging has failed                     */
+/*   ESP32:       flashes blue when pinging,                         */
+/*                red when ping failed,                              */
+/*                flashes green during recovery                      */
+/*                blue/green when connecting to WiFi                 */
+/*********************************************************************/
 
-/* Required Arduino libraries **********************************************************************/
-#include <WiFi.h>                /* Wonder what this is for                                        */
+#include <WiFi.h>
 #include <ESPping.h>             /* Required for pings                                             */
 #include <Adafruit_NeoPixel.h>   /* Required for the WS2812 RGB LED on the Waveshare ESP32-C3-Zero */
 #include <time.h>                /* Required for NTP real-time clock support                       */
-#include <Timezone.h>            /* Required for TZ and DST support                                */
-/***************************************************************************************************/
 
 /* CUSTOMISATIONS ******************************************************************/
 /* DEBUG_MODE ........... Shorter timers & dodgy addresses to test the monitioring */
 /* STATIC_IP  ........... set a static IP address to make it easier to find the    */
 /*                        HTTP status page                                         */
 /* NTP configuration .... If you want time stamps                                  */
+/* NTP_GMT_OFFSET ....... Your timezone for NTP                                    */
 /* formatNTPTime ........ Customise the timestamp output format if you like        */
 /* WIFi configuration ... Obviously very important, configure your home WiFi here  */
 /* dnsList & dnsName .... List of target IP addresses/names to test reachability   */
 /*                        to, customise if you want!                               */
 /* myRouter ............. Just a name to help identify the rebooter                */
-/* myRouterAdminPage .... If you want a link on the status page                    */
 /***********************************************************************************/
 
 /* Uncomment for debug/testing ***********************/
@@ -63,71 +56,43 @@
 #define STATIC_IP    /* Assign yourself an IP address for easy access */
 /**********************************************************************/
 
-/* Status page settings *******************************************************************/
-const char* versionDate = "16/Apr/2026";                 /* Version date of this firmware */
-const char* myRouter = "NF18ACV";                       /* Customise to help identify me! */
-const char* myRouterAdminPage = "http://192.168.1.1"; /* Admin/login page for your router */
-//const char* myRouterAdminPage = "";              /* No admin/login page for your router */
-const char* githubRepo = "https://github.com/BrettHallen/Router-Rebooter";   /* My Github */
-/******************************************************************************************/
+#define RELAY_ENERGISE   HIGH  /* Energise coil = cut power to router (NO contact) */
+#define RELAY_DEENERGISE LOW   /* De-energise coil = restore power (NC contact)    */
+#define NTP_GMT_OFFSET   10    /* GMT+10 (AEST)                                    */
 
-/* Static IP configuration **********************************************************/
-#ifdef STATIC_IP 
-  const IPAddress staticIP(192, 168, 128, 128);   /* Your static IP address         */
-//const IPAddress staticIP(192, 168, 128, 129);   /* For testing 2nd rebooter       */
+const char* versionDate = "1/Apr/2026"; /* Version date for the firmware  */
+const char* myRouter = "NF18ACV";       /* Customise to help identify me! */
+const char* githubRepo = "https://github.com/BrettHallen/Router-Rebooter";  /* My Github */
+
+/* NTP configuration ******************************************/
+const char* ntpServer = "pool.ntp.org";         /* NTP server */                        
+const long  gmtOffset_sec = 3600 * NTP_GMT_OFFSET;    /* AEST */
+const int   daylightOffset_sec = 0; /* Not bothering with DST */
+/**************************************************************/
+
+/* Regard DST handling *************************************/
+/* You could add some code to automatically adjust.        */
+/* For example in NSW, Australia:                          */
+/*   DST starts at 2am AEST on the first Sunday in October */
+/*   DST ends at 3am AEDT on the first Sunday in April     */
+/* Maybe I should add ...                                  */
+/***********************************************************/
+
+/* WiFi configuration **************************************************/
+const char* ssid     = "RouterRebootTest";      /* Your WiFi SSID here */
+const char* password = "Today123!";         /* Your WiFi password here */
+/***********************************************************************/
+
+#ifdef STATIC_IP /* Using a static IP makes it simple to load the status page       */
+  const IPAddress staticIP(192, 168, 128, 129);   /* Your static IP address         */
   const IPAddress gateway(192, 168, 1, 1);        /* Your router/gateway IP address */
   const IPAddress subnet(255, 255, 0, 0);         /* Your netmask                   */
   const IPAddress dns(1, 1, 1, 1);                /* DNS IP address                 */
 #endif
-/************************************************************************************/
-
-/* WiFi configuration **************************************************/
-const char* ssid     = "RouterRebootTest";  /* Your WiFi SSID here     */
-const char* password = "Today123!";         /* Your WiFi password here */
-/***********************************************************************/
-
-/* NTP & TZ configuration *********************************************************************************/
-const char* ntpServer = "pool.ntp.org";                      /* NTP server                                */
-/* TZ/DST setting for NSW, Australia **********************************************************************/
-TimeChangeRule myDST = {"AEDT", First, Sun, Oct, 2, 660};    /* GMT+11 hours from 02:00 first Sunday Oct  */
-TimeChangeRule mySTD = {"AEST", First, Sun, Apr, 3, 600};    /* GMT+10 hours from 03:00 first Sunday Apr  */
-/* Example: TZ setting for non-DST location, i.e. QLD, Australia ******************************************/
-// TimeChangeRule myDST = {"AEST", First, Sun, Jan, 0, 600}; /* Always GMT+10                             */
-// TimeChangeRule mySTD = {"AEST", First, Sun, Jan, 0, 600}; /* Always GMT+10                             */
-/**********************************************************************************************************/
-Timezone myTZ(myDST, mySTD);                                 /* Create the timezone object                */
-const char* previousTZAbbrev = "";                           /* For serial log to detect when DST changed */
-bool ntpTimeSynced = false;                                  /* True after first successful NTP sync      */
-/**********************************************************************************************************/
-//#define MIN_VALID_TIME  1776297600UL     /* 16/Apr/2026 ... ensure only reasonable timestamps are shown */
-/**********************************************************************************************************/
-
-/*******************************************/
-/* Generate MIN_VALID_TIME at compile time */
-/* to ensure sane timestamps               */
-/*******************************************/
-#define COMPILE_YEAR   ((__DATE__[7]-'0')*1000 + (__DATE__[8]-'0')*100 + (__DATE__[9]-'0')*10 + (__DATE__[10]-'0'))
-#define COMPILE_MONTH  ( __DATE__[0]=='J' && __DATE__[1]=='a' && __DATE__[2]=='n' ? 1 : \
-                         __DATE__[0]=='F' ? 2 : \
-                         __DATE__[0]=='M' && __DATE__[1]=='a' && __DATE__[2]=='r' ? 3 : \
-                         __DATE__[0]=='A' && __DATE__[1]=='p' ? 4 : \
-                         __DATE__[0]=='M' && __DATE__[1]=='a' && __DATE__[2]=='y' ? 5 : \
-                         __DATE__[0]=='J' && __DATE__[1]=='u' && __DATE__[2]=='n' ? 6 : \
-                         __DATE__[0]=='J' && __DATE__[1]=='u' && __DATE__[2]=='l' ? 7 : \
-                         __DATE__[0]=='A' && __DATE__[1]=='u' ? 8 : \
-                         __DATE__[0]=='S' ? 9 : \
-                         __DATE__[0]=='O' ? 10 : \
-                         __DATE__[0]=='N' ? 11 : 12)
-#define COMPILE_DAY    ((__DATE__[4]==' ' ? 0 : __DATE__[4]-'0')*10 + (__DATE__[5]-'0'))
-#define MIN_VALID_TIME (((time_t)(COMPILE_YEAR - 1970) * 31536000UL) + \
-                        ((COMPILE_YEAR - 1969)/4 * 86400UL) - \
-                        ((COMPILE_YEAR - 1901)/100 * 86400UL) + \
-                        ((COMPILE_YEAR - 1601)/400 * 86400UL) + \
-                        0UL)
 
 #ifdef DEBUG_MODE
   /*****************************************************/
-  /* Round-robin DNS list                              */
+  /* Round-robin DNS list ******************************/
   /* DEBUG mode – includes dummy IPs to force failures */
   /*****************************************************/
   const IPAddress dnsList[] = 
@@ -150,16 +115,16 @@ bool ntpTimeSynced = false;                                  /* True after first
     "Dummy test failure",
     "Dummy test failure"
   };
-  /* Timers for testing ***************************************************/
-  const int PING_TIMER       = 10000; /* Delay between normal pings (ms)  */
-  const int PING_RETRIES     = 3;     /* Retry ping before failing        */
-  const int PING_RETRY_TIMER = 5000;  /* Delay between retries (ms)       */
-  const int POWER_CYCLE_TIME = 30;    /* Delay for power cycling (s)      */
-  const int RECOVERY_DELAY   = 120;   /* Delay after powering back on (s) */
+  /* Timers for testing ****************************************************/
+  const int PING_TIMER       = 10000;   /* Delay between normal pings (ms) */
+  const int PING_RETRIES     = 3;             /* Retry ping before failing */
+  const int PING_RETRY_TIMER = 5000;         /* Delay between retries (ms) */
+  const int POWER_CYCLE_TIME = 30;          /* Delay for power cycling (s) */
+  const int RECOVERY_DELAY   = 120;    /* Delay after powering back on (s) */
   /*************************************************************************/
 #else
   /*****************************************************/
-  /* Round-robin DNS list                              */
+  /* Round-robin DNS list ******************************/
   /*****************************************************/
   const IPAddress dnsList[] = 
   {
@@ -199,7 +164,7 @@ bool ntpTimeSynced = false;                                  /* True after first
   /************************************************************************/
 #endif
 const int NUM_DNS = sizeof(dnsList) / sizeof(dnsList[0]); /* Count of ping targets */
-int currentIPIndex = 0;                                       /* Round-robin index */
+int currentIPIndex = 0; /* Round-robin index */
 
 /* Ping statistics for each DNS address ****************************************************/
 uint32_t okCount[NUM_DNS]        = {0}; /* How many OK pings                               */
@@ -207,7 +172,6 @@ uint32_t failCount[NUM_DNS]      = {0}; /* How many failed pings                
 time_t   lastFailedPing[NUM_DNS] = {0}; /* Timestamp of last failed ping                   */
 uint32_t lastRebootTime          = 0;   /* millis() when last router reboot occurred       */
 time_t   lastRebootNTP           = 0;   /* NTP timestamp of last router reboot (0 = never) */
-uint32_t rebootCount             = 0;   /* How many router reboots                         */
 uint32_t esp32UpTime             = 0;   /* millis() since last ESP32 restart               */
 /*******************************************************************************************/
 
@@ -216,17 +180,7 @@ const int RELAY_PIN        = 5;   /* GPIO5, active HIGH via 2N2222              
 const int OK_LED_PIN       = 0;   /* GPIO0                                              */
 const int FAILURE_LED_PIN  = 1;   /* GPIO1                                              */
 const int BUILTIN_LED_PIN  = 10;  /* WS2812 RGB LED on GPIO10 (Waveshare ESP32-C3-Zero) */
-#define RELAY_ENERGISE     HIGH   /* Energise coil = cut power to router (NO contact)   */
-#define RELAY_DEENERGISE   LOW    /* De-energise coil = restore power (NC contact)      */
 /****************************************************************************************/
-
-/*****************************************************/
-/* Circular buffer for the last 15 serial debug logs */
-/* Not currently used, maybe later                   */
-// const int MAX_LOG_LINES = 15;
-// String logBuffer[MAX_LOG_LINES];
-// int logHead = 0;
-/*****************************************************/
 
 /* Avoid kernel panic after router reboot if HTTP status page is active */
 bool rebootInProgress = false;
@@ -302,61 +256,17 @@ String timeAgo(uint32_t lastTime)
   return s;
 }
 
-/********************************/
-/* Serial log when DST changed  */
-/********************************/
-void logTimezoneChange(const char* currentAbbrev)
-{
-  /* Don't check if we don't have a valid TZ yet */
-  if (!ntpTimeSynced) return;
-  
-  if (currentAbbrev && previousTZAbbrev[0] != '\0' && strcmp(currentAbbrev, previousTZAbbrev) != 0)
-  {
-    Serial.print(F(">> Timezone changed: "));
-    Serial.print(previousTZAbbrev);
-    Serial.print(F(" to "));
-    Serial.println(currentAbbrev);
-  }
-  
-  /* Update for next time */
-  previousTZAbbrev = currentAbbrev;
-}
-
-/*********************************/
-/* Get current local time and TZ */
-/*********************************/
-time_t getLocalTimeWithAbbrev(const char** abbrev)
-{
-  time_t utc = time(NULL);
-  TimeChangeRule *tcr = nullptr; /* Pointer to active DST rule */
-  time_t local = myTZ.toLocal(utc, &tcr);
-  if (abbrev) *abbrev = tcr->abbrev;
-  logTimezoneChange(tcr->abbrev); /* Serial log if DST changes */
-  return local;
-}
-
 /*************************************/
 /* Format NTP timestamp as date/time */
 /*************************************/
-String formatNTPTime(time_t t, const char* tzAbbrev = nullptr)
+String formatNTPTime(time_t t)
 {
   if (t == 0) return "Never";
   struct tm *tm = localtime(&t);
-  char buf[48];
-  /* Output time string with TZ abbreviation */
-  if (tzAbbrev && tzAbbrev[0] != '\0')
-  {
-    /* customise output here if you want */
-    /*                          DD/Mmm/YYYY HH:MM:SS (AEDT) */
-    strftime(buf, sizeof(buf), "%d/%b/%Y %H:%M:%S", tm);
-    strcat(buf, " (");
-    strcat(buf, tzAbbrev);
-    strcat(buf, ")");
-  }
-  else /* No TZ abbreviation available */
-  {
-    strftime(buf, sizeof(buf), "%d/%b/%Y %H:%M:%S", tm);
-  }
+  char buf[32];
+  /* customise output here if you want */
+  /*                          DD/Mmm/YYYY HH:MM:SS */
+  strftime(buf, sizeof(buf), "%d/%b/%Y %H:%M:%S", tm);
   return String(buf);
 }
 
@@ -366,21 +276,17 @@ String formatNTPTime(time_t t, const char* tzAbbrev = nullptr)
 void syncNTPTime()
 {
   Serial.print(">> Syncing NTP time (pool.ntp.org) ... ");
-  /* Get GMT/UTC only */
-  configTime(0, 0, ntpServer);
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
   /* Give it a few seconds to get a valid time */
   for (int i = 0; i < 25; i++) 
   {
-    const char* tzAbbrev = nullptr;
-    time_t localTime = getLocalTimeWithAbbrev(&tzAbbrev);
-    if (localTime > 1000000000UL) 
-    {   /* Valid Unix epoch */
-      Serial.print(formatNTPTime(localTime, tzAbbrev));
-      Serial.println();
-      ntpTimeSynced = true; /* We should have a valid TZ now */
+    time_t now = time(NULL);
+    if (now > 1000000000UL) 
+    {   /* valid Unix epoch */
+      Serial.println(formatNTPTime(now));
       return;
     }
-    delay(200); /* 200ms */
+    delay(200);
     handleHttpClients();
   }
   Serial.println("failed, no valid time yet");
@@ -391,9 +297,6 @@ void syncNTPTime()
 /******************************/
 void serveHttpPage(WiFiClient &client)
 {
-  const char* tzAbbrev = nullptr;
-  time_t localTime = getLocalTimeWithAbbrev(&tzAbbrev);
-  
   if (rebootInProgress)
   {
     Serial.println("!! [serveHttpPage] Reboot in progress, ignore HTTP requests.");
@@ -424,16 +327,16 @@ void serveHttpPage(WiFiClient &client)
   client.println(F(" *DEBUG MODE*"));
 #endif
   client.println(F("</h1>"));
-  
   /* Advise about auto-refresh of page */
   client.print(F("(This page will refresh every "));
   client.print((PING_TIMER / 1000) + 3 );
   client.println(F("s)"));
   
-  /* Link to my Github repository*/
-  client.print(F("<p><a href=\""));
+  client.println(F("<p><strong>Github:</strong> <a href=\""));
   client.print(githubRepo);
-  client.print(F("\" target=\"_blank\">Github</a></p>"));
+  client.print(F("\" target=\"_blank\">"));
+  client.print(githubRepo);
+  client.println(F("</a></p>"));
 
   /* Table listing our connection info */
   client.print(F("<h2>Connection</h2>"));
@@ -443,34 +346,13 @@ void serveHttpPage(WiFiClient &client)
   /* Our IP address */
   client.print(F("<tr><th>IP address</th><td>")); client.print(WiFi.localIP()); client.println(F("</td></tr>"));
   /* The router we are monitoring */
-  client.print(F("<tr><th>Monitored router</th><td>")); 
-  if (myRouterAdminPage != "")
-  { /* Link to your router's admin page */
-    client.print(F("<p><a href=\""));
-    client.print(myRouterAdminPage);
-    client.print(F("\" target=\"_blank\">"));
-    client.print(myRouter); 
-    client.print(F("</a></p>"));
-  }
-  else
-  {
-    client.print(myRouter); 
-  }
-  client.println(F("</td></tr>"));
+  client.print(F("<tr><th>Monitored router</th><td>")); client.print(myRouter); client.println(F("</td></tr>"));
   /* The current time */
-  client.print(F("<tr><th>Current time (NTP)</th><td>")); client.print(formatNTPTime(localTime, tzAbbrev)); client.println(F("</td></tr>"));
+  client.print(F("<tr><th>Current time (NTP)</th><td>")); client.print(formatNTPTime(time(NULL))); client.println(F("</td></tr>"));
   /* When we last rebooted the router (time ago & time stamp) */
   client.print(F("<tr><th>Last router reboot</th><td>"));   client.print(timeAgo(lastRebootTime)); 
-  if (lastRebootNTP > MIN_VALID_TIME)
-  { /* Only print timestamp if there actually is one */
-    TimeChangeRule *tcr = nullptr;
-    time_t localRebootTime = myTZ.toLocal(lastRebootNTP, &tcr);
-    client.print(F(" at ")); 
-    client.print(formatNTPTime(localRebootTime, tcr->abbrev)); 
-  }
+  if (lastRebootNTP > 0) {client.print(F(" (")); client.print(formatNTPTime(lastRebootNTP)); client.print(F(")"));} 
   client.println(F("</td></tr>"));
-  /* How many times have we power cycled the router */
-  client.print(F("<tr><th>Reboot count</th><td>")); client.print(rebootCount); client.println(F("</td></tr>"));
   /* When the ESP32 was last reset/rebooted */
   client.print(F("<tr><th>Last ESP32 reboot</th><td>")); client.print(timeAgo(esp32UpTime)); client.println(F("</td></tr>"));
   client.println(F("</table></p>"));
@@ -509,48 +391,16 @@ void serveHttpPage(WiFiClient &client)
     /* How many failed pings */
     client.print(F("</td><td>"));
     client.print(failCount[i]);
+    /* Only print the failed timestamp if there is one */
     client.print(F("</td><td>"));
-    /* Only print the failed timestamp if there is one and it's valid */
-    if (lastFailedPing[i] > MIN_VALID_TIME)
-    {
-      TimeChangeRule *tcr = nullptr;
-      time_t localFailedTime = myTZ.toLocal(lastFailedPing[i], &tcr); /* Convert from GMT/UTC to local time */
-      client.print(formatNTPTime(localFailedTime, tcr->abbrev));
-    }
+    if (lastFailedPing[i] > 0) {client.print(formatNTPTime(lastFailedPing[i]));} 
     client.println(F("</td></tr>"));
   }
-  client.println(F("</table></p>"));
-
-  /* Print last few logs to HTTP status page as well */
-  // client.print(F("<h2>Last ");
-  // client.print(MAX_LOG_LINES);
-  // client.println(" debug logs</h2>"));
-  // client.println(F("<pre style=\"background:#f4f4f4;padding:10px;font-family:monospace;font-size:0.9em;overflow:auto;max-height:300px;\">"));
-  
-  // for (int i = 0; i < MAX_LOG_LINES; i++)
-  // {
-  //   int idx = (logHead + i) % MAX_LOG_LINES;
-  //   if (logBuffer[idx].length() > 0)
-  //     client.println(logBuffer[idx]);
-  // }
-  // client.println(F("</pre>"));
-
-  client.println(F("</body></html>"));
+  client.println(F("</table></body></html>"));
   
   /* Ensure the whole page is sent before closing */
   client.flush();
 }
-
-/*************************************/
-/* Log print to serial & status page */
-/* Not currently used, maybe later   */
-/*************************************/
-// void logPrintln(const String& msg)
-// {
-//   Serial.println(msg);                     /* Output log to serial port*/
-//   logBuffer[logHead] = msg;                /* Add it to the buffer for the status page */
-//   logHead = (logHead + 1) % MAX_LOG_LINES; /* Circular wrap-around */
-// }
 
 /***************************************/
 /* Check for HTTP status page requests */
@@ -584,7 +434,8 @@ void waitWithHttpCheck(long ms)
   while (millis() - start < (unsigned long)ms)
   {
     handleHttpClients();
-    delay(200); /* 200ms */
+    /* Check every 200ms */
+    delay(200);
   }
 }
 
@@ -597,43 +448,25 @@ bool performPing()
   pixels.show();
 
   IPAddress currentTarget = dnsList[currentIPIndex];
-  const char* name = dnsName[currentIPIndex];
 
-  Serial.print(F(">> Pinging "));
-
-  /* Convert IP to String and pad to a fixed width */
-  String ipStr = currentTarget.toString();
-  Serial.print(ipStr);
-  for (int i = ipStr.length(); i < 17; i++) 
-  {
-    Serial.print(' ');
-  }
-
-  /* Print the name and pad to a fixed width */
-  Serial.print(name);
-  for (int i = strlen(name); i < 21; i++) 
-  {  
-    Serial.print(' ');
-  }
-
-  Serial.print(F("... "));
+  Serial.print(">> Pinging "); Serial.print(currentTarget); Serial.print(" ("); Serial.print(dnsName[currentIPIndex]); Serial.print(") ... ");
 
   if (Ping.ping(currentTarget, 1)) 
   {
-    Serial.println(F("OK!"));
+    Serial.println("OK!");
     okCount[currentIPIndex]++;
     currentIPIndex = (currentIPIndex + 1) % NUM_DNS;
-    pixels.setPixelColor(0, pixels.Color(0, 0, 0)); /* ESP32 LED off */
+    pixels.setPixelColor(0, pixels.Color(0, 0, 0));
     pixels.show();
     return true;
   } 
   else 
   {
-    Serial.println(F("failed!"));
+    Serial.println("failed!");
     failCount[currentIPIndex]++;
-    lastFailedPing[currentIPIndex] = time(NULL);      /* Store UTC */
+    lastFailedPing[currentIPIndex] = time(NULL);
     currentIPIndex = (currentIPIndex + 1) % NUM_DNS;
-    pixels.setPixelColor(0, pixels.Color(0, 255, 0)); /* Red */
+    pixels.setPixelColor(0, pixels.Color(0, 255, 0));
     pixels.show();
     return false;
   }
@@ -680,11 +513,11 @@ void connectToWiFi()
     /* Set green */
     pixels.setPixelColor(0, pixels.Color(255, 0, 0));
     pixels.show();
-    delay(250); /* 250ms */
+    delay(250);
     /* Set blue */
     pixels.setPixelColor(0, pixels.Color(0, 0, 255));
     pixels.show();
-    delay(250); /* 250ms */
+    delay(250);
     /* Output WiFi status to serial console */ 
     printWiFiStatus(); 
   }
@@ -713,26 +546,24 @@ void connectToWiFi()
 void setup() 
 {
   Serial.begin(115200);
-  delay(1000); /* 1s */
-  Serial.println(F("\n\n>> Brett's Router Rebooter Starting!"));
+  delay(1000);
+  Serial.println("\n\n>> Brett's Router Rebooter Starting!");
   Serial.print("   ("); Serial.print(versionDate); Serial.println(")");
-  Serial.print(F(">> Compiled ")); Serial.print(__DATE__); Serial.print(" "); Serial.println(__TIME__);
-  Serial.print(F(">> Monitoring ")); Serial.println(myRouter);
+  Serial.print(">> Monitoring "); Serial.println(myRouter);
 
   /* Capture our start up time */
   esp32UpTime = millis();
 
 #ifdef DEBUG_MODE
-  Serial.println(F(">> Timer/retry settings (DEBUG):"));
+  Serial.println(">> Timer/retry settings (DEBUG):");
 #else
-  Serial.println(F(">> Timer/retry settings:"));
+  Serial.println(">> Timer/retry settings:");
 #endif
-  Serial.print(F("   Ping timer .......... ")); Serial.print(PING_TIMER/1000); Serial.println("s");
-  Serial.print(F("   Ping retries ........ ")); Serial.println(PING_RETRIES);
-  Serial.print(F("   Ping retry timer .... ")); Serial.print(PING_RETRY_TIMER/1000); Serial.println("s");
-  Serial.print(F("   Power cycle timer ... ")); Serial.print(POWER_CYCLE_TIME); Serial.println("s");
-  Serial.print(F("   Recovery delay ...... ")); Serial.print(RECOVERY_DELAY); Serial.println("s");
-  Serial.print(F("   MIN_VALID_TIME ...... ")); Serial.println(MIN_VALID_TIME);
+  Serial.print("   Ping timer .......... "); Serial.print(PING_TIMER/1000); Serial.println("s");
+  Serial.print("   Ping retries ........ "); Serial.println(PING_RETRIES);
+  Serial.print("   Ping retry timer .... "); Serial.print(PING_RETRY_TIMER/1000); Serial.println("s");
+  Serial.print("   Power cycle timer ... "); Serial.print(POWER_CYCLE_TIME); Serial.println("s");
+  Serial.print("   Recovery delay ...... "); Serial.print(RECOVERY_DELAY); Serial.println("s");
 
   /* Configure our output pins */
   pinMode(RELAY_PIN,           OUTPUT);           /* relay control pin             */
@@ -770,10 +601,7 @@ void loop()
     handleHttpClients(); 
 
     /* Daily NTP re-sync at 05:00 local time */
-    const char* dummy = nullptr;
-    time_t local = getLocalTimeWithAbbrev(&dummy);
     struct tm timeinfo;
-    localtime_r(&local, &timeinfo);   // use local time
     if (getLocalTime(&timeinfo)) 
     {
       static bool syncedToday = false;
@@ -840,26 +668,24 @@ void loop()
 
     /* Record both millis and timestamp */
     lastRebootTime = millis();
-    lastRebootNTP = time(NULL); /* Store as GMT/UTC, not local time */
-    rebootCount++;
+    lastRebootNTP  = time(NULL);
 
     /* Keep router off for a short period to ensure we clear everything from RAM */
     Serial.print(">> Waiting "); Serial.print(POWER_CYCLE_TIME); Serial.println("s before reconnecting power ...");
-    int COUNT_DOWN_STEP = 5; /* Update every 5s */
+    int COUNT_DOWN_STEP = 5; /* update every 5s */
     for (int seconds = POWER_CYCLE_TIME; seconds > 0; seconds-=COUNT_DOWN_STEP)
     {
-      /* Keep web page alive during countdown - REMOVED due to kernel panics during WiFi reconnect */
+      /* Keep web page alive during countdown - REMOVED due to kernel panics */
       // handleHttpClients(); 
       Serial.print("   "); Serial.print(seconds); Serial.println("s");
       for (int i = 0; i < COUNT_DOWN_STEP; i++)
       {
-        /* This accounts for 1s */
         pixels.setPixelColor(0, pixels.Color(255, 0, 0));
         pixels.show();
-        delay(500); /* 500ms */
+        delay(500);
         pixels.setPixelColor(0, pixels.Color(0, 0, 0));
         pixels.show();
-        delay(500); /* 500ms */
+        delay(500);
       }
     }
     Serial.println(">> Powering router back on.");
@@ -867,24 +693,23 @@ void loop()
 
     /* Wait for router to re-connect to ISP before resuming monitoring */
     Serial.print(">> Waiting "); Serial.print(RECOVERY_DELAY); Serial.println("s before resuming monitoring ...");
-    for (int seconds = RECOVERY_DELAY; seconds > 0; seconds-=(COUNT_DOWN_STEP*3)) /* Update every 15s */
+    for (int seconds = RECOVERY_DELAY; seconds > 0; seconds-=(COUNT_DOWN_STEP*3)) /* update every 15s */
     {
-      /* Keep web page alive during countdown - REMOVED due to kernel panics during WiFi reconnect */
+      /* Keep web page alive during countdown - REMOVED due to kernel panics */
       // handleHttpClients(); 
       Serial.print("   ");  Serial.print(seconds);  Serial.println("s");
       for (int i = 0; i < (COUNT_DOWN_STEP*3); i++) 
       {
-        /* This accounts for 1s */
         digitalWrite(OK_LED_PIN, HIGH);                   /* OK on       */
         digitalWrite(FAILURE_LED_PIN, LOW);               /* FAILURE off */
         pixels.setPixelColor(0, pixels.Color(255, 0, 0)); /* Green       */
         pixels.show();
-        delay(500); /* 500ms */
+        delay(500);
         digitalWrite(OK_LED_PIN, LOW);                    /* OK off     */
         digitalWrite(FAILURE_LED_PIN, HIGH);              /* FAILURE on */
         pixels.setPixelColor(0, pixels.Color(0, 255, 0)); /* Red        */
         pixels.show();
-        delay(500); /* 500ms */
+        delay(500);
       }
     }
 
@@ -895,7 +720,7 @@ void loop()
     setNormalState();
     
     WiFi.disconnect(true);
-    delay(2000); /* 2s */
+    delay(2000);
     break;
   }
 }
