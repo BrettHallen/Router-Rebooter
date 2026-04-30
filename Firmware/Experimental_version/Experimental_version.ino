@@ -64,7 +64,7 @@
 /**********************************************************************/
 
 /* Status page settings *******************************************************************/
-const char* versionDate = "16/Apr/2026";                 /* Version date of this firmware */
+const char* versionDate = "24/Apr/2026";                 /* Version date of this firmware */
 const char* myRouter = "NF18ACV";                       /* Customise to help identify me! */
 const char* myRouterAdminPage = "http://192.168.1.1"; /* Admin/login page for your router */
 //const char* myRouterAdminPage = "";              /* No admin/login page for your router */
@@ -347,15 +347,15 @@ String formatNTPTime(time_t t, const char* tzAbbrev = nullptr)
   if (tzAbbrev && tzAbbrev[0] != '\0')
   {
     /* customise output here if you want */
-    /*                          DD/Mmm/YYYY HH:MM:SS (AEDT) */
-    strftime(buf, sizeof(buf), "%d/%b/%Y %H:%M:%S", tm);
+    /*                          HH:MM:SS DD/Mmm/YYYY (TZ) */
+    strftime(buf, sizeof(buf), "%H:%M:%S %d/%b/%Y", tm);
     strcat(buf, " (");
     strcat(buf, tzAbbrev);
     strcat(buf, ")");
   }
   else /* No TZ abbreviation available */
   {
-    strftime(buf, sizeof(buf), "%d/%b/%Y %H:%M:%S", tm);
+    strftime(buf, sizeof(buf), "%H:%M:%S %d/%b/%Y", tm);
   }
   return String(buf);
 }
