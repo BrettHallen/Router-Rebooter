@@ -20,6 +20,7 @@ After another short delay whilst the router reconnects (2-3min) I'll reconnect t
 
 ## YouTube Videos
 - [Part 1: Initial build & test](https://youtu.be/Fz1aSylL9KQ)
+- [Part 2: Revised PCB & Improved Firmware](https://youtu.be/78il7RK1qrU)
 
 ## Examples
 This is how it works using the serial port output - here we simulate the loss of Internet by using dummy IP addresses:<br>
