@@ -126,6 +126,7 @@ Experimental version - seems to be working fine, testing ongoing:<br>
 ![Status page](/Images/Router_Rebooter_status_page.png)
 
 ### Required Libraries
+Install via the Arduino IDE.
 - [ESPping](https://github.com/dvarrel/ESPping)
 - [Adafruit NeoPixel](https://github.com/adafruit/adafruit_neopixel)
 - [Timezone](https://github.com/JChristensen/Timezone)
