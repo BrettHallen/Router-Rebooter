@@ -3,8 +3,8 @@
 67.7734,-65.6334,0.0,top,D1,,,LED_D3.0mm,OK,tht
 64.5984,-65.6334,180.0,top,D2,,,LED_D3.0mm,FAILURE,tht
 94.4434,-61.8234,180.0,top,D3,,,D_DO-41_SOD81_P10.16mm_Horizontal,1N4004,tht
-116.0334,-51.0284,-90.0,top,D4,,,D_DO-41_SOD81_P10.16mm_Horizontal,1N5819,tht
 67.7734,-72.6184,0.0,top,J1,,,PinHeader_1x02_P2.54mm_Vertical,12V Out,tht
+116.0334,-61.1934,180.0,top,J2,,,PinHeader_1x02_P2.54mm_Vertical,ESP32 Power,tht
 107.9234,-70.0934,0.0,top,J3,,,PinHeader_1x02_P2.54mm_Vertical,12V In,tht
 96.5504,-72.6894,-90.0,top,K1,,,Relay_SPDT_Omron-G5LE-1,OMRON G5LE-1-VD,tht
 78.3324,-58.7904,-90.0,top,Q1,,,TO-92_Inline,PN2222A,tht

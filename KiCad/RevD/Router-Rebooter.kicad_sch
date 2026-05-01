@@ -6,8 +6,8 @@
 	(paper "A4")
 	(title_block
 		(title "Broadband Router Rebooter")
-		(date "28/MAR/2026")
-		(rev "C")
+		(date "1/MAY/2026")
+		(rev "D")
 		(company "Brett Hallen")
 	)
 	(lib_symbols
@@ -2174,10 +2174,10 @@
 		)
 		(uuid "b2fe087a-5995-4ebf-aab7-aaf5d53953ca")
 	)
-	(text_box "Schottky diode prevents regulator back-feeding when USB is connected."
+	(text_box "Prevent regulator from powering ESP32 when USB connected."
 		(exclude_from_sim no)
 		(at 193.04 63.5 0)
-		(size 73.66 3.81)
+		(size 62.23 3.81)
 		(margins 0.9525 0.9525 0.9525 0.9525)
 		(stroke
 			(width 0)
@@ -2428,6 +2428,16 @@
 	)
 	(wire
 		(pts
+			(xy 223.52 77.47) (xy 240.03 77.47)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3a790607-429e-4d52-b645-3e3a4ab083ca")
+	)
+	(wire
+		(pts
 			(xy 190.5 77.47) (xy 199.39 77.47)
 		)
 		(stroke
@@ -2518,16 +2528,6 @@
 	)
 	(wire
 		(pts
-			(xy 226.06 77.47) (xy 240.03 77.47)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "6d5c7ba5-d3bc-42ef-b5d4-fc9861a99570")
-	)
-	(wire
-		(pts
 			(xy 68.58 111.76) (xy 71.12 111.76)
 		)
 		(stroke
@@ -2598,7 +2598,7 @@
 	)
 	(wire
 		(pts
-			(xy 218.44 77.47) (xy 214.63 77.47)
+			(xy 214.63 77.47) (xy 220.98 77.47)
 		)
 		(stroke
 			(width 0)
@@ -2907,6 +2907,76 @@
 		(uuid "dc4a9fbd-d756-496e-aaa0-9ca6540e94e2")
 	)
 	(symbol
+		(lib_id "Connector_Generic:Conn_01x02")
+		(at 220.98 72.39 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "08136c7c-9c6c-4b91-b347-624bfe696589")
+		(property "Reference" "J2"
+			(at 226.06 71.1199 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "ESP32 Power"
+			(at 226.06 73.6599 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical"
+			(at 220.98 72.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 220.98 72.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"
+			(at 220.98 72.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "991fedc8-a9c0-4120-abd3-4e96c7a0de21")
+		)
+		(pin "1"
+			(uuid "92508a9e-6ae9-431f-9786-1956d4780582")
+		)
+		(instances
+			(project ""
+				(path "/8de648ee-e13b-40be-adc8-7d40ce8ea697"
+					(reference "J2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Clueless_Engineer:Waveshare-ESP32-C3-Zero")
 		(at 41.91 106.68 0)
 		(mirror y)
@@ -3160,92 +3230,6 @@
 			(project "Router-Rebooter"
 				(path "/8de648ee-e13b-40be-adc8-7d40ce8ea697"
 					(reference "R1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:D")
-		(at 222.25 77.47 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "580d28cb-958d-4ea1-a66b-f6e03b6d60eb")
-		(property "Reference" "D4"
-			(at 222.25 71.12 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "1N5819"
-			(at 222.25 73.66 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal"
-			(at 222.25 77.47 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 222.25 77.47 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Diode"
-			(at 222.25 77.47 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Sim.Device" "D"
-			(at 222.25 77.47 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Sim.Pins" "1=K 2=A"
-			(at 222.25 77.47 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "a5c906f7-0b42-4342-9749-00dbd2fd2c7e")
-		)
-		(pin "2"
-			(uuid "447fee9b-4f64-412a-aac0-ca2c50b52c24")
-		)
-		(instances
-			(project "Router-Rebooter"
-				(path "/8de648ee-e13b-40be-adc8-7d40ce8ea697"
-					(reference "D4")
 					(unit 1)
 				)
 			)

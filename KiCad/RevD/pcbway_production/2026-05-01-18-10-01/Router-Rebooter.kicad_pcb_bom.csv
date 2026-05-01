@@ -3,8 +3,8 @@ C1,1,10µF,CP_Radial_D5.0mm_P2.50mm,,,,tht,Polarized capacitor,,
 D1,1,OK,LED_D3.0mm,,,,tht,Light emitting diode,1=K 2=A,
 D2,1,FAILURE,LED_D3.0mm,,,,tht,Light emitting diode,1=K 2=A,
 D3,1,1N4004,D_DO-41_SOD81_P10.16mm_Horizontal,,,,tht,Diode,1=K 2=A,D
-D4,1,1N5819,D_DO-41_SOD81_P10.16mm_Horizontal,,,,tht,Diode,1=K 2=A,D
 J1,1,12V Out,PinHeader_1x02_P2.54mm_Vertical,,,,tht,"Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)",,
+J2,1,ESP32 Power,PinHeader_1x02_P2.54mm_Vertical,,,,tht,"Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)",,
 J3,1,12V In,PinHeader_1x02_P2.54mm_Vertical,,,,tht,"Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)",,
 K1,1,OMRON G5LE-1-VD,Relay_SPDT_Omron-G5LE-1,,,,tht,"Sanyo SRD relay, Single Pole Miniature Power Relay, Opening Contact",,
 Q1,1,PN2222A,TO-92_Inline,,,,tht,"1A Ic, 40V Vce, NPN Transistor, General Purpose Transistor, TO-92",,
