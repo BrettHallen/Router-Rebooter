@@ -10,3 +10,6 @@ KiCad/RevC/fp-info-cache
 /Firmware/Zepoon
 /Firmware/Relay_Test
 *.lck
+*.dsn
+KiCad/RevD/fp-info-cache
+/KiCad/RevD/Router-Rebooter-backups
