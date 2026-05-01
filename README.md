@@ -145,12 +145,12 @@ There are three LEDs: the OK LED (suggested green), the FAILURE LED (suggested r
 | On       | On          | Red                 | Ping failed                    |
 | Off      | On          | Off                 | Ping retries failed            |
 | Off      | On          | Green flashing      | Router power cycling           |
-| Flashing | On          | Off                 | Waiting for router to recover  |   
+| Flashing | Flashing    | Red/green flashing  | Waiting for router to recover  |   
 
 ## Hardware
 There's currently two versions:
 - [Rev. B](/KiCad/RevB) minor corrections of my original design with 2.1mm DC sockets and vertically mounted regulator 
-- [Rev. C](/KiCad/RevC) removes the 2.1mm DC sockets and lies the 5V regulator down 
+- [Rev. D](/KiCad/RevC) removes the 2.1mm DC sockets, lies the 5V regulator down and adds regulator output bypass for the ESP32 when connected via serial/USB
 
 ### Parts
 - OMRON GL5E-1-VD relay (or similar)
