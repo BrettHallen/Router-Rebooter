@@ -13,6 +13,7 @@
 /*                5/Apr/2026: added reboot count & other minor tweaks  */
 /*               16/Apr/2026: fixed UTC-AEDT conversion                */
 /*                            calculate MIN_VALID_TIME at compile time */
+/*                3/May/2026: "Reachability" typo (thanks Brian!)      */
 /*                                                                     */
 /* HARDWARE MAPPING:                                                   */
 /*   Relay control: GPIO 5 (pin 9) via 2N2222 transistor               */
@@ -64,7 +65,7 @@
 /**********************************************************************/
 
 /* Status page settings *******************************************************************/
-const char* versionDate = "16/Apr/2026";                 /* Version date of this firmware */
+const char* versionDate = "3/May/2026";                  /* Version date of this firmware */
 const char* myRouter = "NF18ACV";                       /* Customise to help identify me! */
 const char* myRouterAdminPage = "http://192.168.1.1"; /* Admin/login page for your router */
 //const char* myRouterAdminPage = "";              /* No admin/login page for your router */
@@ -347,15 +348,15 @@ String formatNTPTime(time_t t, const char* tzAbbrev = nullptr)
   if (tzAbbrev && tzAbbrev[0] != '\0')
   {
     /* customise output here if you want */
-    /*                          DD/Mmm/YYYY HH:MM:SS (AEDT) */
-    strftime(buf, sizeof(buf), "%d/%b/%Y %H:%M:%S", tm);
+    /*                          HH:MM:SS DD/Mmm/YYYY (TZ) */
+    strftime(buf, sizeof(buf), "%H:%M:%S %d/%b/%Y", tm);
     strcat(buf, " (");
     strcat(buf, tzAbbrev);
     strcat(buf, ")");
   }
   else /* No TZ abbreviation available */
   {
-    strftime(buf, sizeof(buf), "%d/%b/%Y %H:%M:%S", tm);
+    strftime(buf, sizeof(buf), "%H:%M:%S %d/%b/%Y", tm);
   }
   return String(buf);
 }
@@ -491,7 +492,7 @@ void serveHttpPage(WiFiClient &client)
   client.println(F("</table></p>"));
 
   /* Our OK/FAILED ping stats for each target address */
-  client.println(F("<h2>Rechability statistics</h2>"));
+  client.println(F("<h2>Reachability statistics</h2>"));
   client.println(F("<table><tr><th>Target address</th><th>Target name</th><th>OK pings</th><th>Failed pings</th><th>Last failed ping</th></tr>"));
 
   /* Output each target's statistics */
