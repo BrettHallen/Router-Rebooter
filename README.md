@@ -121,7 +121,7 @@ Use the Arduino IDE to compile & transfer to the ESP32.<br>
 - [Experimental version](/Experimental_version)
 
 Experimental version - seems to be working fine, testing ongoing:<br>
-- added TZ/DST handling, including automatic DST change according to local rule
+- added support to ping IP addresses as well as FQDNs
 
 ![Status page](/Images/Router_Rebooter_status_page.png)
 
