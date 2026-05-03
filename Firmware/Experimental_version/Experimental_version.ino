@@ -14,6 +14,7 @@
 /*               16/Apr/2026: fixed UTC-AEDT conversion                */
 /*                            calculate MIN_VALID_TIME at compile time */
 /*                3/May/2026: "Reachability" typo (thanks Brian!)      */
+/*                            also ping FQDNs                          */
 /*                                                                     */
 /* HARDWARE MAPPING:                                                   */
 /*   Relay control: GPIO 5 (pin 9) via 2N2222 transistor               */
@@ -89,6 +90,7 @@ const char* password = "Today123!";         /* Your WiFi password here */
 
 /* NTP & TZ configuration *********************************************************************************/
 const char* ntpServer = "pool.ntp.org";                      /* NTP server                                */
+bool ntpSyncInProgress = false;                              /* To prevent serial logs                    */
 /* TZ/DST setting for NSW, Australia **********************************************************************/
 TimeChangeRule myDST = {"AEDT", First, Sun, Oct, 2, 660};    /* GMT+11 hours from 02:00 first Sunday Oct  */
 TimeChangeRule mySTD = {"AEST", First, Sun, Apr, 3, 600};    /* GMT+10 hours from 03:00 first Sunday Apr  */
@@ -126,30 +128,30 @@ bool ntpTimeSynced = false;                                  /* True after first
                         ((COMPILE_YEAR - 1601)/400 * 86400UL) + \
                         0UL)
 
+/* Ping both IP addresses and FQDNs */
+struct PingTarget 
+{
+  const char* address;   /* Target IP string or FQDN               */
+  const char* name;      /* Target description                     */
+  bool isHostname;       /* true = resolve as hostname, false = IP */
+};
+
 #ifdef DEBUG_MODE
   /*****************************************************/
   /* Round-robin DNS list                              */
   /* DEBUG mode – includes dummy IPs to force failures */
   /*****************************************************/
-  const IPAddress dnsList[] = 
+  const PingTarget targets[] = 
   {
-    IPAddress(1, 1, 1, 1),      /* Cloudflare primary    */
-    IPAddress(192,168,123,123), /* Dummy to test failure */
-    IPAddress(1, 0, 0, 1),      /* Cloudflare secondary  */
-    IPAddress(192,168,123,123), /* Dummy to test failure */
-    IPAddress(192,168,123,123), /* Dummy to test failure */
-    IPAddress(192,168,123,123), /* Dummy to test failure */
-    IPAddress(192,168,123,123)  /* Dummy to test failure */
-  };
-  const char* dnsName[] =
-  {
-    "Cloudflare primary",    /* 1.1.1.1 */
-    "Dummy test failure",    
-    "Cloudflare secondary",  /* 1.0.0.1 */
-    "Dummy test failure",
-    "Dummy test failure",
-    "Dummy test failure",
-    "Dummy test failure"
+    {"1.1.1.1",                         "Cloudflare primary",   false},
+    {"192.168.123.123",                 "Dummy test failure1",  false},
+    {"8.8.8.8",                         "Google primary",       false},
+    {"192.168.123.123",                 "Dummy test failure2",  false},
+    {"192.168.123.123",                 "Dummy test failure3",  false},
+    {"192.168.123.123",                 "Dummy test failure4",  false},
+    {"192.168.123.123",                 "Dummy test failure5",  false},
+    {"192.168.123.123",                 "Dummy test failure6",  false},
+    {"AussieBB.nms1.voice.wide.net.au", "AussieBB Voice NMS",   true}  /* for VoNBN */
   };
   /* Timers for testing ***************************************************/
   const int PING_TIMER       = 10000; /* Delay between normal pings (ms)  */
@@ -162,34 +164,20 @@ bool ntpTimeSynced = false;                                  /* True after first
   /*****************************************************/
   /* Round-robin DNS list                              */
   /*****************************************************/
-  const IPAddress dnsList[] = 
+  const PingTarget targets[] = 
   {
-    IPAddress(1, 1, 1, 1),         /* Cloudflare primary   */
-    IPAddress(1, 0, 0, 1),         /* Cloudflare secondary */
-    IPAddress(8, 8, 8, 8),         /* Google primary       */
-    IPAddress(8, 8, 4, 4),         /* Google secondary     */
-    IPAddress(9, 9, 9, 9),         /* Quad9 primary        */
-    IPAddress(149, 112, 112, 112), /* Quad9 secondary      */
-    IPAddress(4, 2, 2, 1),         /* Level 3 primary      */
-    IPAddress(4, 2, 2, 2),         /* Level 3 secondary    */
-    IPAddress(4, 2, 2, 3),         /* Level 3 tertiary     */
-    IPAddress(208, 67, 222, 222),  /* OpenDNS primary      */
-    IPAddress(208, 67, 220, 220)   /* OpenDNS secondary    */
-  };
-  /* Target names for each IP target (matches the list above) */
-  const char* dnsName[] = 
-  {
-    "Cloudflare primary",   /* 1.1.1.1                       */
-    "Cloudflare secondary", /* 1.0.0.1                       */
-    "Google primary",       /* 8.8.8.8                       */
-    "Google secondary",     /* 8.8.4.4                       */
-    "Quad9 primary",        /* 9.9.9.9                       */
-    "Quad9 secondary",      /* 149.112.112.112               */
-    "Level 3 primary",      /* 4.2.2.1                       */
-    "Level 3 secondary",    /* 4.2.2.2                       */
-    "Level 3 tertiary",     /* 4.2.2.3                       */
-    "OpenDNS primary",      /* 208.67.222.222                */
-    "OpenDNS secondary"     /* 208.67.220.220                */
+    {"1.1.1.1",                         "Cloudflare primary",   false},
+    {"1.0.0.1",                         "Cloudflare secondary", false},
+    {"8.8.8.8",                         "Google primary",       false},
+    {"8.8.4.4",                         "Google secondary",     false},
+    {"9.9.9.9",                         "Quad9 primary",        false},
+    {"149.112.112.112",                 "Quad9 secondary",      false},
+    {"4.2.2.1",                         "Level 3 primary",      false},
+    {"4.2.2.2",                         "Level 3 secondary",    false},
+    {"4.2.2.3",                         "Level 3 tertiary",     false},
+    {"208.67.222.222",                  "OpenDNS primary",      false},
+    {"208.67.220.220",                  "OpenDNS secondary",    false},
+    {"AussieBB.nms1.voice.wide.net.au", "AussieBB VoNBN SIP",   true}  /* for Aussie Broadband VoNBN */
   };
   /* Timers ***************************************************************/
   const int PING_TIMER       = 30000; /* Delay between normal pings (ms)  */
@@ -199,13 +187,13 @@ bool ntpTimeSynced = false;                                  /* True after first
   const int RECOVERY_DELAY   = 180;   /* Delay after powering back on (s) */
   /************************************************************************/
 #endif
-const int NUM_DNS = sizeof(dnsList) / sizeof(dnsList[0]); /* Count of ping targets */
-int currentIPIndex = 0;                                       /* Round-robin index */
+const int NUM_TARGETS = sizeof(targets) / sizeof(targets[0]); /* Count of ping targets */
+int currentTargetIndex = 0;                                       /* Round-robin index */
 
 /* Ping statistics for each DNS address ****************************************************/
-uint32_t okCount[NUM_DNS]        = {0}; /* How many OK pings                               */
-uint32_t failCount[NUM_DNS]      = {0}; /* How many failed pings                           */
-time_t   lastFailedPing[NUM_DNS] = {0}; /* Timestamp of last failed ping                   */
+uint32_t okCount[NUM_TARGETS]        = {0}; /* How many OK pings                               */
+uint32_t failCount[NUM_TARGETS]      = {0}; /* How many failed pings                           */
+time_t   lastFailedPing[NUM_TARGETS] = {0}; /* Timestamp of last failed ping                   */
 uint32_t lastRebootTime          = 0;   /* millis() when last router reboot occurred       */
 time_t   lastRebootNTP           = 0;   /* NTP timestamp of last router reboot (0 = never) */
 uint32_t rebootCount             = 0;   /* How many router reboots                         */
@@ -382,7 +370,6 @@ void syncNTPTime()
       return;
     }
     delay(200); /* 200ms */
-    handleHttpClients();
   }
   Serial.println("failed, no valid time yet");
 }
@@ -496,14 +483,14 @@ void serveHttpPage(WiFiClient &client)
   client.println(F("<table><tr><th>Target address</th><th>Target name</th><th>OK pings</th><th>Failed pings</th><th>Last failed ping</th></tr>"));
 
   /* Output each target's statistics */
-  for (int i = 0; i < NUM_DNS; i++)
+  for (int i = 0; i < NUM_TARGETS; i++)
   {
     /* Target IP address */
     client.print(F("<tr><td>"));
-    client.print(dnsList[i]);
+    client.print(targets[i].address);
     /* Target name */
     client.print(F("</td><td>"));
-    client.print(dnsName[i]);
+    client.print(targets[i].name);
     /* How many OK pings */
     client.print(F("</td><td>"));
     client.print(okCount[i]);
@@ -558,12 +545,9 @@ void serveHttpPage(WiFiClient &client)
 /***************************************/
 void handleHttpClients()
 {
-  if (rebootInProgress || WiFi.status() != WL_CONNECTED)
+  /* Silently ignore HTTP status page requests during critical periods */
+  if (rebootInProgress || ntpSyncInProgress || WiFi.status() != WL_CONNECTED)
   {
-    if (!rebootInProgress)
-      Serial.println(F("!! [handleHttpClients] WiFi not connected, ignoring HTTP requests."));
-    else
-      Serial.println(F("!! [handleHttpClients] Reboot in progress, ignoring HTTP requests."));
     return;
   }
 
@@ -584,7 +568,8 @@ void waitWithHttpCheck(long ms)
   unsigned long start = millis();
   while (millis() - start < (unsigned long)ms)
   {
-    handleHttpClients();
+    if (!ntpSyncInProgress) /* Only handle after NTP sync completed */
+      handleHttpClients();
     delay(200); /* 200ms */
   }
 }
@@ -597,48 +582,49 @@ bool performPing()
   pixels.setPixelColor(0, pixels.Color(0, 0, 255));
   pixels.show();
 
-  IPAddress currentTarget = dnsList[currentIPIndex];
-  const char* name = dnsName[currentIPIndex];
+  const PingTarget& tgt = targets[currentTargetIndex];
 
   Serial.print(F(">> Pinging "));
-
-  /* Convert IP to String and pad to a fixed width */
-  String ipStr = currentTarget.toString();
-  Serial.print(ipStr);
-  for (int i = ipStr.length(); i < 17; i++) 
-  {
-    Serial.print(' ');
-  }
-
-  /* Print the name and pad to a fixed width */
-  Serial.print(name);
-  for (int i = strlen(name); i < 21; i++) 
+  Serial.print(tgt.address);
+  for (int i = strlen(tgt.address); i < 40; i++) Serial.print(' '); /* padding for alignment */
+  Serial.print(tgt.name);
+  for (int i = strlen(tgt.name); i < 25; i++) Serial.print(' ');
   {  
     Serial.print(' ');
   }
 
   Serial.print(F("... "));
 
-  if (Ping.ping(currentTarget, 1)) 
+  bool success;
+  if (tgt.isHostname) 
+  {
+    success = Ping.ping(tgt.address, 1); /* hostname/FQDN */
+  }
+  else 
+  {
+    IPAddress ip;
+    ip.fromString(tgt.address);
+    success = Ping.ping(ip, 1);
+  }
+
+  if (success) 
   {
     Serial.println(F("OK!"));
-    okCount[currentIPIndex]++;
-    currentIPIndex = (currentIPIndex + 1) % NUM_DNS;
+    okCount[currentTargetIndex]++;
     pixels.setPixelColor(0, pixels.Color(0, 0, 0)); /* ESP32 LED off */
-    pixels.show();
-    return true;
   } 
   else 
   {
     Serial.println(F("failed!"));
-    failCount[currentIPIndex]++;
-    lastFailedPing[currentIPIndex] = time(NULL);      /* Store UTC */
-    currentIPIndex = (currentIPIndex + 1) % NUM_DNS;
-    pixels.setPixelColor(0, pixels.Color(0, 255, 0)); /* Red */
-    pixels.show();
-    return false;
+    failCount[currentTargetIndex]++;
+    lastFailedPing[currentTargetIndex] = time(NULL);  /* Store UTC */
+    pixels.setPixelColor(0, pixels.Color(255, 0, 0)); /* red */
   }
-}
+
+  pixels.show();
+  currentTargetIndex = (currentTargetIndex + 1) % NUM_TARGETS;
+  return success;
+}  
 
 /****************/
 /* All is well! */
